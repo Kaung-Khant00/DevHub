@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('job_proposals', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('job_post_id')->constrained();
-            $table->foreignId('developer_id')->constrained();
+            $table->foreignId('job_post_id')->constrained('job_posts');
+            $table->foreignId('developer_id')->constrained('users');
             $table->text('proposal_text');
             $table->string('expected_salary',20);
             $table->enum('status',['pending','accepted','rejected'])->default('pending');

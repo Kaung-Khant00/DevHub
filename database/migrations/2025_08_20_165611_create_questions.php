@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('questions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained();
+            $table->foreignId('user_id')->constrained('users');
             $table->string('title');
             $table->text('body');
             $table->boolean('is_solved')->default(false);
-            $table->foreignId('best_answer_id')->nullable()->constrained();
+            $table->integer('best_answer_id')->nullable();
             $table->timestamp('created_at')->useCurrent();
         });
     }

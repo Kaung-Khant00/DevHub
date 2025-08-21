@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('group_post_comments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('post_id')->constrained();
-            $table->foreignId('user_id')->constrained();
+            $table->foreignId('post_id')->constrained('group_posts');
+            $table->foreignId('user_id')->constrained('users');
             $table->text('comment');
             $table->timestamps();
         });

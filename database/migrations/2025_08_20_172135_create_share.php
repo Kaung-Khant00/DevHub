@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('share_question', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('question_id')->constrained();
-            $table->foreignId('shared_user_id')->constrained();
+            $table->foreignId('question_id')->constrained('questions');
+            $table->foreignId('shared_user_id')->constrained('users');
             $table->text('message');
             $table->timestamp('created_at')->useCurrent();
         });

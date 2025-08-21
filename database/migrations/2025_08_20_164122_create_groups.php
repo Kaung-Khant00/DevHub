@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('description')->nullable();
             $table->string('image')->nullable();
-            $table->foreignId('founder_id')->constrained();
+            $table->foreignId('founder_id')->constrained('users');
             $table->timestamp('created_at')->useCurrent();
         });
     }

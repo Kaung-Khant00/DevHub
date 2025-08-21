@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('recipient_id')->constrained();
-            $table->foreignId('sender_id')->constrained();
+            $table->foreignId('recipient_id')->constrained('users');
+            $table->foreignId('sender_id')->constrained('users');
             $table->enum('type',['system','job','group','qa','rating'])->default('system');
             $table->integer('related_id')->nullable();
             $table->string('title');

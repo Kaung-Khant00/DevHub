@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('developer_ratings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('developer_id')->constrained();
-            $table->foreignId('rater_id')->constrained();
+            $table->foreignId('rated_by')->constrained();
             $table->enum('rating',[1,2,3,4,5]);
             $table->text('review')->nullable();
             $table->timestamp('created_at')->useCurrent();

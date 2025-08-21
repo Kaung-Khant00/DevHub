@@ -20,9 +20,10 @@ return new class extends Migration
             $table->enum('oauth_provider', ['github','google'])->nullable();
             $table->string('oauth_id')->nullable();
             $table->enum('role', ['admin', 'developer','client']);
-            $table->string('avatar_url')->nullable();
+            $table->string('profile_url')->nullable();
             $table->string('phone',20)->nullable();
             $table->string('bio')->nullable();
+            $table->unsignedInteger('profile_id');
             $table->rememberToken();
             $table->timestamps();
         });

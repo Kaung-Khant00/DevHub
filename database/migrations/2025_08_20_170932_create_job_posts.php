@@ -21,6 +21,7 @@ return new class extends Migration
             $table->integer('salary');
             $table->string('location');
             $table->boolean('status')->default(true);
+            $table->integer('position')->default(0);
             $table->timestamps();
         });
     }

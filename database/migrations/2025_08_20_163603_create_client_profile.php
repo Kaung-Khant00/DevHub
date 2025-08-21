@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('company_name')->nullable();
             $table->string('website')->nullable();
             $table->string("address")->nullable();
-            $table->json('social_links')->nullable();
+            $table->string('social_link')->nullable();
             $table->text('about')->nullable();
             $table->timestamps();
         });

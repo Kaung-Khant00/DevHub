@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('share', function (Blueprint $table) {
+        Schema::create('share_question', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('post_id')->constrained();
             $table->foreignId('question_id')->constrained();
             $table->foreignId('shared_user_id')->constrained();
             $table->text('message');

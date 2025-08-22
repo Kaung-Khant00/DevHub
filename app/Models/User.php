@@ -8,6 +8,7 @@ use App\Models\Question;
 use App\Models\GroupPost;
 
 use App\Models\JobProposal;
+use Laravel\Sanctum\HasApiTokens;
 use App\Models\DeveloperConnection;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -18,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable,HasApiTokens;
 
     /**
      * The attributes that are mass assignable.

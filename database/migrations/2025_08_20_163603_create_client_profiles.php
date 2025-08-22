@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('developer_profile', function (Blueprint $table) {
+        Schema::create('client_profiles', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->unique()->constrained();
-            $table->string('skill')->nullable();
+            $table->string('company_name')->nullable();
+            $table->string('website')->nullable();
             $table->string("address")->nullable();
-            $table->string('github_url')->nullable();
-            $table->string('linkedin_url')->nullable();
-            $table->string('portfolio_url')->nullable();
+            $table->string('social_link')->nullable();
+            $table->text('about')->nullable();
             $table->timestamps();
         });
     }
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('developer_profile');
+        Schema::dropIfExists('client_profiles');
     }
 };

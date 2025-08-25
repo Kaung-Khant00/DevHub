@@ -11,15 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('questions', function (Blueprint $table) {
+        Schema::create('posts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users');
-            $table->string('title');
-            $table->text('body');
-            $table->boolean('is_solved')->default(false);
-            $table->integer('best_answer_id')->nullable();
-            $table->mediumText('code')->nullable();
+            $table->foreignId('user_id')->constrained();
+            $table->string('title')->nullable();
+            $table->text('content');
             $table->string('image')->nullable();
+            $table->string('file')->nullable();
+            $table->mediumText('code')->nullable();
+            $table->string('code_lang')->nullable()->default('not specified');
+            $table->json('tags')->nullable();
             $table->timestamps();
         });
     }
@@ -29,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('questions');
+        Schema::dropIfExists('posts');
     }
 };

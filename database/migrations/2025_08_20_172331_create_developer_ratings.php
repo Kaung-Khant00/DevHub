@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('rated_by')->constrained('users');
             $table->enum('rating',[1,2,3,4,5]);
             $table->text('review')->nullable();
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
         });
     }
 

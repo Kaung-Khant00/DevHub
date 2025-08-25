@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->string('image')->nullable();
             $table->foreignId('user_id')->constrained('users');
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
         });
     }
 

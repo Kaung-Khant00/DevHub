@@ -16,10 +16,10 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->string('password')->nullable();
             $table->enum('oauth_provider', ['github','google'])->nullable();
             $table->string('oauth_id')->nullable();
-            $table->enum('role', ['admin', 'developer','client']);
+            $table->enum('role', ['admin', 'developer','client'])->nullable();
             $table->string('profile_url')->nullable();
             $table->string('phone',20)->nullable();
             $table->string('bio')->nullable();

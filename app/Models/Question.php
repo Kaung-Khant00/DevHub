@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Question extends Model
 {
-    protected $fillable = ['title', 'body', 'user_id','is_solved','best_answer_id'];
+    protected $fillable = ['title', 'body', 'user_id','is_solved','best_answer_id','code','image'];
 
     public function user(): BelongsTo
     {

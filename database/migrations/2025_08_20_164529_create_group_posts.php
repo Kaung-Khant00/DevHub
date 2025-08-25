@@ -16,8 +16,8 @@ return new class extends Migration
             $table->foreignId('group_id')->constrained();
             $table->foreignId('user_id')->constrained();
             $table->text('content');
-            $table->string('image');
-            $table->timestamp('created_at')->useCurrent();
+            $table->string('image')->nullable();
+            $table->timestamps();
         });
     }
 

@@ -11,15 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('questions', function (Blueprint $table) {
+        Schema::create('category_suggestions', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->string('description')->nullable();
             $table->foreignId('user_id')->constrained('users');
-            $table->string('title');
-            $table->text('body');
-            $table->boolean('is_solved')->default(false);
-            $table->integer('best_answer_id')->nullable();
-            $table->mediumText('code')->nullable();
-            $table->string('image')->nullable();
+            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->boolean('is_read')->default(false);
             $table->timestamps();
         });
     }
@@ -29,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('questions');
+        Schema::dropIfExists('category_suggestions');
     }
 };

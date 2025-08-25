@@ -15,4 +15,6 @@ class ShareQuestion extends Model
         return $this->belongsTo(User::class, 'shared_user_id');
     }
 
+    public $timestamps = false;
+
 }

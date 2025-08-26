@@ -26,7 +26,9 @@ Route::post('/logout', [AuthController::class, 'logout']);
 
 Route::group(['prefix'=>'posts'],function(){
     Route::get('/newest', [PostController::class, 'getNewestPosts']);
+    Route::get('/{id}', [PostController::class, 'getPostById']);
     Route::post('/', [PostController::class, 'store']);
+    Route::post('/edit/{id}', [PostController::class, 'update']);
 });
 Route::post('/set/role', [AuthController::class, 'setRole']);
 

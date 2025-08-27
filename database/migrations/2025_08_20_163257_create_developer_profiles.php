@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('developer_profiles', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->unique()->constrained();
-            $table->string('skill')->nullable();
+            $table->json('skills')->nullable();
             $table->string("address")->nullable();
             $table->string('github_url')->nullable();
             $table->string('linkedin_url')->nullable();

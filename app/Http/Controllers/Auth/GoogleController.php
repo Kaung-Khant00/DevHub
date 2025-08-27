@@ -21,7 +21,8 @@ class GoogleController extends Controller
             [
                 'name'=>$googleUser->getName() ?? $googleUser->getNickname(),
                 'oauth_id'=>$googleUser->getId(),
-                "oauth_provider" => "google"
+                "oauth_provider" => "google",
+                "profile_url" => $googleUser->getAvatar(),
             ]
             );
             $token = $user->createToken("KK's-google")->plainTextToken;

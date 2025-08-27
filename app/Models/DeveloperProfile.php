@@ -10,7 +10,12 @@ class DeveloperProfile extends Model
 {
     protected $fillable = ['user_id', 'skills','address', 'github_url','linkedin_url', 'portfolio_url'];
 
+    protected $hidden = ['user_id','id'];
+
     public function user () : BelongsTo {
         return $this->belongsTo(User::class);
     }
+    protected $casts = [
+        'skills' => 'array'
+    ];
 }

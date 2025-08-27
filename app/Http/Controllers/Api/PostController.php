@@ -18,8 +18,6 @@ class PostController extends Controller
     {
         $perPage = $request->query('perPage');
         $currentPage = $request->query('currentPage');
-        logger($perPage);
-        logger($currentPage);
         $posts = Post::with('user')
             ->orderBy('created_at', 'desc')
             ->paginate($perPage, ['*'], 'page', $currentPage);
@@ -128,20 +126,17 @@ class PostController extends Controller
         $isDeleteImage = $request->input('isDeleteImage', false);
         $isDeleteFile = $request->input('isDeleteFile', false);
         $postData = $this->getPostData($request);
-        logger($request->all());
         /*
 |-------------------------------------------------------------------------
 |  File And Image deleting when the user wants to delete not update
 */
         if ($isDeleteImage == true) {
-            logger("DELETING IMAGE");
             if (Storage::disk('public')->exists($post->image)) {
                 Storage::disk('public')->delete($post->image);
             }
             $postData['image'] = null;
         }
         if ($isDeleteFile == true) {
-            logger("DELETING FILE");
             if (Storage::disk('public')->exists($post->file)) {
                 Storage::disk('public')->delete($post->file);
             }

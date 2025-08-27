@@ -22,7 +22,8 @@ class GitHubController extends Controller
             [
                 'name'=>$githubUser->getName() ?? $githubUser->getNickname(),
                 'oauth_id'=>$githubUser->getId(),
-                "oauth_provider" => "github"
+                "oauth_provider" => "github",
+                "profile_url" => $githubUser->getAvatar(),
             ]
             );
             $token = $user->createToken("KK's-github")->plainTextToken;

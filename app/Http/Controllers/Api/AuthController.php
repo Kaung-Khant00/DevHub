@@ -17,7 +17,6 @@ class AuthController extends Controller
 */
     public function register(Request $request)
     {
-        logger($request);
         $this->validateRegistration($request);
         $userData = $this->getRegistrationData($request);
         $user = User::create($userData);
@@ -76,7 +75,6 @@ class AuthController extends Controller
     {
         $this->validateLogin($request);
         $credentials = $request->only('email', 'password');
-        logger($credentials);
     if (!auth()->attempt($credentials)) {
         return response()->json(['message' => 'Invalid credentials'], 401);
     }
@@ -124,6 +122,12 @@ class AuthController extends Controller
             'message' => 'Role is already set and cannot be changed.',
             'user' => $user
         ], 400);
+    }
+    if($request->input('role') === "developer"){
+        $user->developerProfile()->create();
+    }
+    if($request->input('role') === "client"){
+        $user->clientProfile()->create();
     }
     $user->role = $request->input('role');
     $user->save();

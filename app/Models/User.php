@@ -4,10 +4,12 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\Answer;
+use DateTimeInterface;
 use App\Models\Question;
-use App\Models\GroupPost;
 
+use App\Models\GroupPost;
 use App\Models\JobProposal;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\DeveloperConnection;
 use Illuminate\Notifications\Notifiable;
@@ -33,7 +35,7 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password', 'remember_token','oauth_id','user_id',];
 
     /**
      * Get the attributes that should be cast.
@@ -47,6 +49,21 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+        protected function serializeDate(DateTimeInterface $date)
+    {
+        // Example: "27 Aug 2025"
+        return $date->format('d M Y');
+    }
+    /*  This function make the frontend to be simple */
+    public function getProfileUrlAttribute($value)
+{
+    /*  I return if the profile link is URL not path */
+    if (Str::startsWith($value, ['http://', 'https://'])) {
+        return $value;
+    }
+    /*  I return the asset URL  */
+    return $value ? asset('storage/profile/' . $value) : null;
+}
 
     public function developerProfile()
     {

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('title')->nullable();
             $table->text('content');
             $table->string('image')->nullable();
-            $table->string('file')->nullable();
+            $table->foreignId('file_id')->nullable()->constrained('files');
             $table->mediumText('code')->nullable();
             $table->string('code_lang')->nullable()->default('not specified');
             $table->json('tags')->nullable();

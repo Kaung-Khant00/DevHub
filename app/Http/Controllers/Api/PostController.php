@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\File;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -11,14 +12,14 @@ class PostController extends Controller
 {
     /*
   |-------------------------------------------------------------------------
-  | GET ALL POSTS In PAGINATION WITH RANDOM ORDER ( FOR YOU PAGE )
+  | GET ALL POSTS In PAGINATION WITH NEWEST POST
   |--------------------------------------------------------------------------
   */
     public function getNewestPosts(Request $request)
     {
         $perPage = $request->query('perPage');
         $currentPage = $request->query('currentPage');
-        $posts = Post::with('user')
+        $posts = Post::with(['user', 'file'])
             ->orderBy('created_at', 'desc')
             ->paginate($perPage, ['*'], 'page', $currentPage);
         return response()->json([
@@ -47,7 +48,10 @@ class PostController extends Controller
             $file = $request->file('file');
             // $fileName = time().'_'.$file->getClientOriginalName();
             $filePath = $file->store('files', 'public');
-            $postData['file'] = $filePath;
+            $fileInfo = $this->getFileInfoData($request);
+            $fileInfo['path'] = $filePath;
+            $file = File::create($fileInfo);
+            $postData['file_id'] = $file->id;
         }
 
         $post = Post::create(
@@ -69,10 +73,10 @@ class PostController extends Controller
     {
         $request->validate(
             [
-                'title' => 'string|max:255',
+                'title' => 'nullable|string|max:255',
                 'content' => 'required|string|max:10000',
                 'image' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:5120',
-                'file' => 'nullable|file|mimes:html,css,scss,sass,js,ts,jsx,tsx,vue,php,py,java,c,cpp,h,cs,go,rb,sh,json,xml,yml,yaml,sql,csv,env,md,pdf,doc,docx,xls,xlsx,ppt,pptx,zip,rar,7z,tar,gz|max:10240',
+                'file' => 'nullable|file|max:10240',
                 'code' => 'nullable|string',
                 'code_lang' => 'nullable|string',
             ],
@@ -90,6 +94,14 @@ class PostController extends Controller
             'code' => $request->input('code'),
             'code_lang' => $request->input('codeLang'),
             'tags' => $request->input('tags'),
+        ];
+    }
+    private function getFileInfoData(Request $request)
+    {
+        return [
+            'name' => $request->input('fileInfo.name'),
+            'size' => $request->input('fileInfo.size'),
+            'type' => $request->input('fileInfo.type'),
         ];
     }
     /*
@@ -129,12 +141,12 @@ class PostController extends Controller
 |  File And Image deleting when the user wants to delete not update
 */
         if ($isDeleteImage === true) {
-        $this->deleteImage($post);
+            $this->deleteImage($post);
 
             $postData['image'] = null;
         }
         if ($isDeleteFile === true) {
-                    $this->deleteFile($post);
+            $this->deleteFile($post);
 
             $postData['file'] = null;
         }
@@ -211,5 +223,21 @@ class PostController extends Controller
         if (!empty($post->file) && is_string($post->file) && Storage::disk('public')->exists($post->file)) {
             Storage::disk('public')->delete($post->file);
         }
+    }
+    /*
+  |-------------------------------------------------------------------------
+  | DOWNLOAD FILE
+  |--------------------------------------------------------------------------
+  */
+public function download(Request $request)
+{
+    $file = $request->input('path');
+    logger($file);
+    if (!$file || !Storage::disk('public')->exists($file)) {
+        abort(404, 'File not found');
+    }
+
+    $path =  Storage::disk('public')->path($file);
+    return response()->download($path);
     }
 }

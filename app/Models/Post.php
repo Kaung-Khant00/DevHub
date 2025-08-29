@@ -9,14 +9,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Post extends Model
 {
-    protected $fillable = ['user_id', 'content', 'image', 'file', 'code', 'code_lang','tags','title'];
+    protected $fillable = ['user_id', 'content', 'image', 'file_id', 'code', 'code_lang','tags','title'];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
     public function file():HasOne{
-        return $this->hasOne(File::class);
+        return $this->hasOne(File::class,'id','file_id');
     }
     protected $casts = [
     'tags' => 'array',

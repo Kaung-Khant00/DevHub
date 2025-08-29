@@ -48,27 +48,25 @@ class ProfileController extends Controller
     {
         $this->validateProfileData($request);
         $user = $request->user();
-        $user->update($request->only(['name', 'phone', 'bio','main_career']));
+        $user->update($request->only(['name', 'phone', 'bio', 'main_career']));
         $user->developerProfile()->update($request->only(['skills', 'address', 'github_url', 'linkedin_url', 'portfolio_url']));
         return response()->json(['message' => 'Success']);
     }
     private function validateProfileData(Request $request)
     {
-        return $request->validate(
-            [
-                /*  for user table */
-                'name' => 'required|string|max:255',
-                'phone' => 'nullable|string|max:255',
-                'bio' => 'nullable|string|max:1000',
-                'main_career' => 'nullable|string|max:255',
-                /*  for developer table :) */
-                'skills' => 'nullable|max:255',
-                'address' => 'nullable|string|max:255',
-                'github_url' => 'nullable|url|max:255',
-                'linkedin_url' => 'nullable|url|max:255',
-                'portfolio_url' => 'nullable|url|max:255',
-            ],
-        );
+        return $request->validate([
+            /*  for user table */
+            'name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:255',
+            'bio' => 'nullable|string|max:1000',
+            'main_career' => 'nullable|string|max:255',
+            /*  for developer table :) */
+            'skills' => 'nullable|max:255',
+            'address' => 'nullable|string|max:255',
+            'github_url' => 'nullable|url|max:255',
+            'linkedin_url' => 'nullable|url|max:255',
+            'portfolio_url' => 'nullable|url|max:255',
+        ]);
     }
     /*
 |--------------------------------------------------------------------------
@@ -92,19 +90,19 @@ class ProfileController extends Controller
                 $user->profile_url = $filePath;
             }
             /*  condition allow --> image URL */
-            if ( empty($user->profile_url) || Str::startsWith($user->profile_url, ['http://', 'https://'])) {
+            if (empty($user->profile_url) || Str::startsWith($user->profile_url, ['http://', 'https://'])) {
                 $filePath = $image->store('profile', 'public');
                 $user->profile_url = $filePath;
             }
             $user->save();
             return response()->json([
-                'message'=>"Profile Image updated successfully.",
-                'user'=>$user
+                'message' => 'Profile Image updated successfully.',
+                'user' => $user,
             ]);
         }
         return response()->json([
-            'message'=>"The image is required.",
-            "user"=>$user
+            'message' => 'The image is required.',
+            'user' => $user,
         ]);
     }
     private function validateProfileImage(Request $request)
@@ -121,27 +119,70 @@ class ProfileController extends Controller
             ],
         );
     }
-        /*
+
+    /*
 |--------------------------------------------------------------------------
 |   EDIT PROFILE IMAGE ( DEVELOPER )
 |--------------------------------------------------------------------------
 */
-public function deleteProfileImage(Request $request){
-    $user = $request->user();
-    if(empty($user->profile_url)){
+    public function deleteProfileImage(Request $request)
+    {
+        $user = $request->user();
+        if (empty($user->profile_url)) {
+            return response()->json([
+                'message' => 'No profile image found.',
+                'user' => $user,
+            ]);
+        }
+        if (!Str::startsWith($user->profile_url, ['http://', 'https://']) && Storage::disk('public')->exists($user->profile_url)) {
+            Storage::disk('public')->delete($user->profile_url);
+        }
+        $user->profile_url = null;
+        $user->save();
         return response()->json([
-            'message'=>"No profile image found.",
-            "user"=>$user
+            'message' => 'Profile Image deleted successfully.',
+            'profile' => $user->developerProfile,
         ]);
     }
-    if(!Str::startsWith($user->profile_url, ['http://', 'https://']) && Storage::disk('public')->exists($user->profile_url)){
-        Storage::disk('public')->delete($user->profile_url);
+    /*
+|--------------------------------------------------------------------------
+|   GET USER POSTS
+|--------------------------------------------------------------------------
+*/
+    public function getUserPosts(Request $request)
+    {
+        $user = $request->user();
+        $posts = $user
+            ->posts()
+            ->with(['user', 'file'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+        return response()->json([
+            'message' => 'Posts retrieved successfully.',
+            'posts' => $posts,
+        ]);
     }
-    $user->profile_url = null;
-    $user->save();
-    return response()->json([
-        'message'=>"Profile Image deleted successfully.",
-        'profile'=>$user->developerProfile
-    ]);
+    /*
+|--------------------------------------------------------------------------
+|   GET USER POSTS BY SEARCH QUERY
+|--------------------------------------------------------------------------
+*/
+    public function searchPosts(Request $request)
+    {
+        $user = $request->user();
+        $posts = $user
+            ->posts()
+            ->with(['user', 'file'])
+            ->when($request->searchQuery, function ($query, $searchQuery) {
+                return $query->whereAny(['title', 'content', 'code_lang'], 'LIKE', '%' . $searchQuery . '%');
+            })
+            ->orderBy('created_at', $request->input('sortBy','desc'))
+            ->get();
+        return response()->json([
+            'message' => 'Posts retrieved successfully.',
+            'posts' => $posts,
+        ]);
+    }
 }
-}
+
+/* whereJsonContains('column_name', ['value1', 'value2']) */

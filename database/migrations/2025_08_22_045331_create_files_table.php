@@ -12,10 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('files', function (Blueprint $table) {
-            $table->foreignId('post_id')->constrained('posts');
+            $table->id();
             $table->string('name');
             $table->string('size');
             $table->string('path');
+            $table->string('type');
         });
     }
 

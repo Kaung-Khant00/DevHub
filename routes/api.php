@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PostController;
+use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Auth\GitHubController;
 use App\Http\Controllers\Auth\GoogleController;
@@ -34,6 +35,8 @@ Route::group(['prefix'=>'profile'],function(){
     Route::post('/developer/edit/{id}', [ProfileController::class, 'editProfile']);
     Route::post('/developer/image/edit', [ProfileController::class, 'uploadProfileImage']);
     Route::delete('/developer/image', [ProfileController::class, 'deleteProfileImage']);
+    Route::get('/posts',[ProfileController::class,'getUserPosts']);
+    Route::post('/posts/search',[ProfileController::class,'searchPosts']);
 });
 
 /*
@@ -47,11 +50,11 @@ Route::group(['prefix'=>'posts'],function(){
     Route::post('/', [PostController::class, 'store']);
     Route::post('/edit/{id}', [PostController::class, 'update']);
     Route::delete('/{id}', [PostController::class, 'delete']);
+    Route::post('/download',[PostController::class,'download']);
 });
 
 
 Route::post('/set/role', [AuthController::class, 'setRole']);
-
 });
 
 

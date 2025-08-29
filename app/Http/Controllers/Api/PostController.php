@@ -71,8 +71,8 @@ class PostController extends Controller
             [
                 'title' => 'string|max:255',
                 'content' => 'required|string|max:10000',
-                'image' => 'nullable|image|mimes:png,jpg,jpeg,webp,gif|max:5120',
-                'file' => 'nullable|file|mimes:html,css,scss,sass,js,ts,jsx,tsx,vue,php,py,java,c,cpp,h,cs,go,rb,sh,json,xml,yml,yaml,sql,csv,env,md,pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,webp,svg,zip,rar,7z,tar,gz|max:10240',
+                'image' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:5120',
+                'file' => 'nullable|file|mimes:html,css,scss,sass,js,ts,jsx,tsx,vue,php,py,java,c,cpp,h,cs,go,rb,sh,json,xml,yml,yaml,sql,csv,env,md,pdf,doc,docx,xls,xlsx,ppt,pptx,zip,rar,7z,tar,gz|max:10240',
                 'code' => 'nullable|string',
                 'code_lang' => 'nullable|string',
             ],
@@ -110,16 +110,14 @@ class PostController extends Controller
     }
     /*
   |-------------------------------------------------------------------------
-  | Update Post by ID
+  | Update OR EDIT Post by ID
   |--------------------------------------------------------------------------
   */
     public function update($id, Request $request)
     {
         $post = Post::find($id);
-        if (!$post) {
-            return response()->json(['message' => 'Post not found.'], 404);
-        }
-        if ($post->user_id !== auth()->id()) {
+        logger($request);
+        if ($post->user_id !== $request->user()->id) {
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
         $this->validateUpdatingPost($request);
@@ -127,43 +125,38 @@ class PostController extends Controller
         $isDeleteFile = $request->input('isDeleteFile', false);
         $postData = $this->getPostData($request);
         /*
-|-------------------------------------------------------------------------
+|-----------------------------------
 |  File And Image deleting when the user wants to delete not update
 */
-        if ($isDeleteImage == true) {
-            if (Storage::disk('public')->exists($post->image)) {
-                Storage::disk('public')->delete($post->image);
-            }
+        if ($isDeleteImage === true) {
+        $this->deleteImage($post);
+
             $postData['image'] = null;
         }
-        if ($isDeleteFile == true) {
-            if (Storage::disk('public')->exists($post->file)) {
-                Storage::disk('public')->delete($post->file);
-            }
+        if ($isDeleteFile === true) {
+                    $this->deleteFile($post);
+
             $postData['file'] = null;
         }
         /*
-|-------------------------------------------------------------------------
+|--------------------------------
 |  UPDATE File And Image and delete the previous ones
 */
         if ($request->hasFile('image')) {
             $image = $request->file('image');
-            if (Storage::disk('public')->exists($post->image)) {
-                Storage::disk('public')->delete($post->image);
-            }
+            $this->deleteImage($post);
             $imagePath = $image->store('images', 'public');
             $postData['image'] = $imagePath;
         }
         if ($request->hasFile('file')) {
             $file = $request->file('file');
-            if (Storage::disk('public')->exists($post->file)) {
-                Storage::disk('public')->delete($post->file);
-            }
+            $this->deleteFile($post);
             $filePath = $file->store('files', 'public');
             $postData['file'] = $filePath;
         }
 
         $post->update($postData);
+        $post->load('user');
         return response()->json([
             'message' => 'Post updated successfully.',
             'post' => $post,
@@ -175,8 +168,8 @@ class PostController extends Controller
             [
                 'title' => 'nullable|string|max:255',
                 'content' => 'required|string|max:10000',
-                'image' => 'nullable|image|mimes:png,jpg,jpeg,webp,gif|max:5120',
-                'file' => 'nullable|file|mimes:html,css,scss,sass,js,ts,jsx,tsx,vue,php,py,java,c,cpp,h,cs,go,rb,sh,json,xml,yml,yaml,sql,csv,env,md,pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,webp,svg,zip,rar,7z,tar,gz|max:10240',
+                'image' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:5120',
+                'file' => 'nullable|file|mimes:html,css,scss,sass,js,ts,jsx,tsx,vue,php,py,java,c,cpp,h,cs,go,rb,sh,json,xml,yml,yaml,sql,csv,env,md,pdf,doc,docx,xls,xlsx,ppt,pptx,zip,rar,7z,tar,gz|max:10240',
                 'code' => 'nullable|string',
                 'code_lang' => 'nullable|string',
             ],
@@ -185,5 +178,38 @@ class PostController extends Controller
                 'file.max' => 'The file can not be greater than 10 MB.',
             ],
         );
+    }
+
+    /*
+|-------------------------------------------------------------------------
+| DELETE POST BY ID
+|--------------------------------------------------------------------------
+*/
+    public function delete($id, Request $request)
+    {
+        $post = Post::find($id);
+        if (!$post) {
+            return response()->json(['message' => 'Post not found.'], 404);
+        }
+        if ($post->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+        $this->deleteImage($post);
+        $this->deleteFile($post);
+        $post->delete();
+        return response()->json(['id' => $post->id, 'message' => 'Post deleted successfully.']);
+    }
+
+    private function deleteImage($post)
+    {
+        if (!empty($post->image) && is_string($post->image) && Storage::disk('public')->exists($post->image)) {
+            Storage::disk('public')->delete($post->image);
+        }
+    }
+    private function deleteFile($post)
+    {
+        if (!empty($post->file) && is_string($post->file) && Storage::disk('public')->exists($post->file)) {
+            Storage::disk('public')->delete($post->file);
+        }
     }
 }

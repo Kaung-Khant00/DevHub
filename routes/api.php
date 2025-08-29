@@ -31,7 +31,9 @@ Route::post('/logout', [AuthController::class, 'logout']);
 */
 Route::group(['prefix'=>'profile'],function(){
     Route::get('/', [ProfileController::class, 'getProfile']);
-    Route::post('/developer/edit', [ProfileController::class, 'editProfile']);
+    Route::post('/developer/edit/{id}', [ProfileController::class, 'editProfile']);
+    Route::post('/developer/image/edit', [ProfileController::class, 'uploadProfileImage']);
+    Route::delete('/developer/image', [ProfileController::class, 'deleteProfileImage']);
 });
 
 /*
@@ -44,6 +46,7 @@ Route::group(['prefix'=>'posts'],function(){
     Route::get('/{id}', [PostController::class, 'getPostById']);
     Route::post('/', [PostController::class, 'store']);
     Route::post('/edit/{id}', [PostController::class, 'update']);
+    Route::delete('/{id}', [PostController::class, 'delete']);
 });
 
 

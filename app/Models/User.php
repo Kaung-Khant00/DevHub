@@ -3,10 +3,11 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Post;
 use App\Models\Answer;
 use DateTimeInterface;
-use App\Models\Question;
 
+use App\Models\Question;
 use App\Models\GroupPost;
 use App\Models\JobProposal;
 use Illuminate\Support\Str;
@@ -28,7 +29,7 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
-    protected $fillable = ['name', 'email', 'password', 'oauth_provider', 'oauth_id', 'role', 'profile_url', 'phone', 'bio'];
+    protected $fillable = ['main_career','name', 'email', 'password', 'oauth_provider', 'oauth_id', 'role', 'profile_url', 'phone', 'bio'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -55,24 +56,28 @@ class User extends Authenticatable
         return $date->format('d M Y');
     }
     /*  This function make the frontend to be simple */
-    public function getProfileUrlAttribute($value)
+    protected $appends = ['profile_image_url','posts_count', 'followers_count', 'followings_count', 'groups_count'];
+    public function getProfileImageUrlAttribute()
 {
     /*  I return if the profile link is URL not path */
-    if (Str::startsWith($value, ['http://', 'https://'])) {
-        return $value;
+    if (Str::startsWith($this->profile_url, ['http://', 'https://'])) {
+        return $this->profile_url;
     }
     /*  I return the asset URL  */
-    return $value ? asset('storage/profile/' . $value) : null;
+    return $this->profile_url ? asset('/storage/' . $this->profile_url) : asset('/defaultImages/profileImage.jpg');
 }
 
     public function developerProfile()
     {
-        return $this->hasOne(DeveloperProfile::class);
+        return $this->hasOne(DeveloperProfile::class, 'user_id', 'id');
     }
 
     public function clientProfile()
     {
-        return $this->hasOne(ClientProfile::class);
+        return $this->hasOne(ClientProfile::class , 'user_id', 'id');
+    }
+    public function posts():HasMany{
+        return $this->hasMany(Post::class, 'user_id', 'id');
     }
     public function groupPosts(): HasMany
     {
@@ -96,11 +101,11 @@ class User extends Authenticatable
     }
     public function followings(): BelongsToMany
     {
-        return $this->belongsToMany(DeveloperConnection::class, 'developer_connections', 'follower_id', 'following_id');
+        return $this->belongsToMany(User::class, 'developer_connections', 'follower_id', 'following_id');
     }
     public function followers(): BelongsToMany
     {
-        return $this->belongsToMany(DeveloperConnection::class, 'developer_connections', 'following_id', 'follower_id');
+        return $this->belongsToMany(User::class, 'developer_connections', 'following_id', 'follower_id');
     }
     public function groups(): BelongsToMany
     {
@@ -110,4 +115,24 @@ class User extends Authenticatable
     {
         return $this->hasMany(DeveloperRating::class, 'developer_id', 'id');
     }
+    public function getPostsCountAttribute()
+{
+    return $this->posts()->count();
+}
+
+public function getFollowersCountAttribute()
+{
+    return $this->followers()->count();
+}
+
+public function getFollowingsCountAttribute()
+{
+    return $this->followings()->count();
+}
+
+public function getGroupsCountAttribute()
+{
+    return $this->groups()->count();
+}
+
 }

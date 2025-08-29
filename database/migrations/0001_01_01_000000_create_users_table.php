@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('oauth_id')->nullable();
             $table->enum('role', ['admin', 'developer','client'])->nullable();
             $table->string('profile_url')->nullable();
+            $table->string('main_career')->nullable();
             $table->string('phone',20)->nullable();
             $table->string('bio')->nullable();
             $table->rememberToken();

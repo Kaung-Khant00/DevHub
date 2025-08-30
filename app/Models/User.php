@@ -22,21 +22,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable,HasApiTokens;
+    use HasFactory, Notifiable, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
-    protected $fillable = ['main_career','name', 'email', 'password', 'oauth_provider', 'oauth_id', 'role', 'profile_url', 'phone', 'bio'];
+    protected $fillable = ['main_career', 'name', 'email', 'password', 'oauth_provider', 'oauth_id', 'role', 'profile_url', 'phone', 'bio'];
 
     /**
      * The attributes that should be hidden for serialization.
      *
      * @var list<string>
      */
-    protected $hidden = ['password', 'remember_token','oauth_id','user_id',];
+    protected $hidden = ['password', 'remember_token', 'oauth_id', 'user_id'];
 
     /**
      * Get the attributes that should be cast.
@@ -50,22 +50,17 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-        protected function serializeDate(DateTimeInterface $date)
-    {
-        // Example: "27 Aug 2025"
-        return $date->format('d M Y');
-    }
-    /*  This function make the frontend to be simple */
-    protected $appends = ['profile_image_url','posts_count', 'followers_count', 'followings_count', 'groups_count'];
-    public function getProfileImageUrlAttribute()
-{
-    /*  I return if the profile link is URL not path */
-    if (Str::startsWith($this->profile_url, ['http://', 'https://'])) {
-        return $this->profile_url;
-    }
-    /*  I return the asset URL  */
-    return $this->profile_url ? asset('/storage/' . $this->profile_url) : asset('/defaultImages/profileImage.jpg');
-}
+
+
+    /*
+    |-------------------------------------------------------------------------
+    |
+    |
+    |   ----------   DATABASE RELATIONSHIPS   ----------
+    |
+    |
+    |--------------------------------------------------------------------------
+  */
 
     public function developerProfile()
     {
@@ -74,9 +69,10 @@ class User extends Authenticatable
 
     public function clientProfile()
     {
-        return $this->hasOne(ClientProfile::class , 'user_id', 'id');
+        return $this->hasOne(ClientProfile::class, 'user_id', 'id');
     }
-    public function posts():HasMany{
+    public function posts(): HasMany
+    {
         return $this->hasMany(Post::class, 'user_id', 'id');
     }
     public function groupPosts(): HasMany
@@ -89,7 +85,7 @@ class User extends Authenticatable
     }
     public function questions(): HasMany
     {
-          return $this->hasMany(Question::class, 'user_id', 'id');
+        return $this->hasMany(Question::class, 'user_id', 'id');
     }
     public function answers(): HasMany
     {
@@ -115,24 +111,52 @@ class User extends Authenticatable
     {
         return $this->hasMany(DeveloperRating::class, 'developer_id', 'id');
     }
+    public function likedPosts(): BelongsToMany
+    {
+        return $this->belongsToMany(Post::class, 'post_likes');
+    }
+    /*
+    |-------------------------------------------------------------------------
+    |
+    |
+    |                   ATTRIBUTES AND APPENDS
+    |
+    |
+    |--------------------------------------------------------------------------
+  */
     public function getPostsCountAttribute()
-{
-    return $this->posts()->count();
-}
+    {
+        return $this->posts()->count();
+    }
 
-public function getFollowersCountAttribute()
-{
-    return $this->followers()->count();
-}
+    public function getFollowersCountAttribute()
+    {
+        return $this->followers()->count();
+    }
 
-public function getFollowingsCountAttribute()
-{
-    return $this->followings()->count();
-}
+    public function getFollowingsCountAttribute()
+    {
+        return $this->followings()->count();
+    }
 
-public function getGroupsCountAttribute()
-{
-    return $this->groups()->count();
-}
-
+    public function getGroupsCountAttribute()
+    {
+        return $this->groups()->count();
+    }
+    protected function serializeDate(DateTimeInterface $date)
+    {
+        // Example: "27 Aug 2025"
+        return $date->format('d M Y');
+    }
+    /*  This function make the frontend to be simple */
+    protected $appends = ['profile_image_url', 'posts_count', 'followers_count', 'followings_count', 'groups_count'];
+    public function getProfileImageUrlAttribute()
+    {
+        /*  I return if the profile link is URL not path */
+        if (Str::startsWith($this->profile_url, ['http://', 'https://'])) {
+            return $this->profile_url;
+        }
+        /*  I return the asset URL  */
+        return $this->profile_url ? asset('/storage/' . $this->profile_url) : asset('/defaultImages/profileImage.jpg');
+    }
 }

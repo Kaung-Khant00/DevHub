@@ -45,11 +45,12 @@ Route::group(['prefix'=>'profile'],function(){
 |--------------------------------------------------------------------------
 */
 Route::group(['prefix'=>'posts'],function(){
-    Route::get('/newest', [PostController::class, 'getNewestPosts']);
+    Route::get('/', [PostController::class, 'getPosts']);
     Route::get('/{id}', [PostController::class, 'getPostById']);
     Route::post('/', [PostController::class, 'store']);
     Route::post('/edit/{id}', [PostController::class, 'update']);
     Route::delete('/{id}', [PostController::class, 'delete']);
+    Route::post('/like',[PostController::class,'likePost']);
     Route::post('/download',[PostController::class,'download']);
 });
 

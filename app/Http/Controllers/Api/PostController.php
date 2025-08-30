@@ -15,12 +15,22 @@ class PostController extends Controller
   | GET ALL POSTS In PAGINATION WITH NEWEST POST
   |--------------------------------------------------------------------------
   */
-    public function getNewestPosts(Request $request)
+    public function getPosts(Request $request)
     {
+        $sortBy = $request->query('sortBy');
         $perPage = $request->query('perPage');
         $currentPage = $request->query('currentPage');
         $posts = Post::with(['user', 'file'])
-            ->orderBy('created_at', 'desc')
+            ->withCount('likedUsers')
+            ->withExists([
+                'likedUsers as liked' => function ($q) use ($request) {
+                    $q->where('user_id', $request->user()->id);
+                },
+            ])
+            ->when($sortBy,function($query,$sortBy){
+                $sort = explode(',', $sortBy);
+                $query->orderBy($sort[0], $sort[1]);
+            })
             ->paginate($perPage, ['*'], 'page', $currentPage);
         return response()->json([
             'message' => 'Posts retrieved successfully.',
@@ -224,20 +234,42 @@ class PostController extends Controller
             Storage::disk('public')->delete($post->file);
         }
     }
+
+    /*
+  |-------------------------------------------------------------------------
+  | Get Post By ID
+  |--------------------------------------------------------------------------
+  */
+    public function likePost(Request $request)
+    {
+        $post = Post::find($request->post_id);
+
+        /*  syncWithoutDetaching will add only if the user id is not present in the post :) */
+        /*  I toggled the like and return false if the user is already like and return true when the user did't like the post before */
+        $liked = $post->toggleLike($request->user()->id);
+        $post->load('user')->loadCount('likedUsers');
+        /*  And reinsert the post liked data back to the post object :) */
+        $post->liked = $liked;
+        return response()->json([
+            'message' => 'Post toggled successfully.',
+            'post' => $post,
+        ]);
+    }
+
     /*
   |-------------------------------------------------------------------------
   | DOWNLOAD FILE
   |--------------------------------------------------------------------------
   */
-public function download(Request $request)
-{
-    $file = $request->input('path');
-    logger($file);
-    if (!$file || !Storage::disk('public')->exists($file)) {
-        abort(404, 'File not found');
-    }
+    public function download(Request $request)
+    {
+        $file = $request->input('path');
+        logger($file);
+        if (!$file || !Storage::disk('public')->exists($file)) {
+            abort(404, 'File not found');
+        }
 
-    $path =  Storage::disk('public')->path($file);
-    return response()->download($path);
+        $path = Storage::disk('public')->path($file);
+        return response()->download($path);
     }
 }

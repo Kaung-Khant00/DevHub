@@ -130,6 +130,28 @@ class PostController extends Controller
             'data' => $post,
         ]);
     }
+
+/*
+  |-------------------------------------------------------------------------
+  | Get Post By ID
+  |--------------------------------------------------------------------------
+  */
+    public function getDetailPostById(Request $request,$id){
+        $post = Post::where('id',$id)->with(['user', 'file'])
+            ->withCount('likedUsers')
+            ->withExists([
+                'likedUsers as liked' => function($q) use ($request){
+                    $q->where('user_id',$request->user()->id);
+            }])->first();
+        if (!$post) {
+            return response()->json(['message' => 'Post not found.'], 404);
+        }
+        return response()->json([
+            'message' => 'Detail Post retrieved successfully.',
+            'post' => $post,
+        ]);
+    }
+
     /*
   |-------------------------------------------------------------------------
   | Update OR EDIT Post by ID
@@ -256,6 +278,30 @@ class PostController extends Controller
         ]);
     }
 
+        /*
+  |-------------------------------------------------------------------------
+  | Comment Post
+  |--------------------------------------------------------------------------
+  */
+/* public function commentPost(Request $request){
+    $this->validateComment($request);
+    $post = Post::find($request->post_id);
+    $comment = $post->comments()->create([
+        'user_id' => $request->user()->id,
+        'comment' => $request->comment,
+    ]);
+    $comment->load('user');
+    return response()->json([
+        'message' => 'Comment created successfully.',
+        'comment' => $comment,
+    ]);
+}
+private function validateComment(Request $request){
+    return $request->validate([
+        'user_id' => 'required|exists:users,id',
+        'comment'=> 'required|string|max:500',
+    ]);
+} */
     /*
   |-------------------------------------------------------------------------
   | DOWNLOAD FILE

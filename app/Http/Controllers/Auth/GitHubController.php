@@ -23,9 +23,12 @@ class GitHubController extends Controller
                 'name'=>$githubUser->getName() ?? $githubUser->getNickname(),
                 'oauth_id'=>$githubUser->getId(),
                 "oauth_provider" => "github",
-                "profile_url" => $githubUser->getAvatar(),
             ]
             );
+            if($user->profile_url == null){
+                $user->profile_url = $githubUser->getAvatar();
+                $user->save();
+            }
             $token = $user->createToken("KK's-github")->plainTextToken;
  return redirect()->to( 'http://localhost:5173/auth/oauth/callback?token=' . $token);
     }

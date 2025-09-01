@@ -8,24 +8,29 @@ use Laravel\Socialite\Facades\Socialite;
 
 class GoogleController extends Controller
 {
-        public function redirectToGoogle(){
+    public function redirectToGoogle()
+    {
         $url = Socialite::driver('google')->stateless()->redirect()->getTargetUrl();
         return response()->json([
-            'url'=>$url
+            'url' => $url,
         ]);
     }
-    public function handleGoogleCallback(){
+    public function handleGoogleCallback()
+    {
         $googleUser = Socialite::driver('google')->stateless()->user();
         $user = User::updateOrCreate(
-            ['email'=>$googleUser->getEmail()],
+            ['email' => $googleUser->getEmail()],
             [
-                'name'=>$googleUser->getName() ?? $googleUser->getNickname(),
-                'oauth_id'=>$googleUser->getId(),
-                "oauth_provider" => "google",
-                "profile_url" => $googleUser->getAvatar(),
-            ]
-            );
-            $token = $user->createToken("KK's-google")->plainTextToken;
- return redirect()->to( 'http://localhost:5173/auth/oauth/callback?token=' . $token);
+                'name' => $googleUser->getName() ?? $googleUser->getNickname(),
+                'oauth_id' => $googleUser->getId(),
+                'oauth_provider' => 'google',
+            ],
+        );
+        if ($user->profile_url == null) {
+            $user->profile_url = $googleUser->getAvatar();
+            $user->save();
+        }
+        $token = $user->createToken("KK's-google")->plainTextToken;
+        return redirect()->to('http://localhost:5173/auth/oauth/callback?token=' . $token);
     }
 }

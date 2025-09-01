@@ -148,7 +148,7 @@ class User extends Authenticatable
         // Example: "27 Aug 2025"
         return $date->format('d M Y');
     }
-    /*  This function make the frontend to be simple */
+    /*  These functions make the frontend to be simple :) */
     protected $appends = ['profile_image_url', 'posts_count', 'followers_count', 'followings_count', 'groups_count'];
     public function getProfileImageUrlAttribute()
     {

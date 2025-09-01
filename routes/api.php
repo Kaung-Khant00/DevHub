@@ -45,15 +45,25 @@ Route::group(['prefix'=>'profile'],function(){
 |--------------------------------------------------------------------------
 */
 Route::group(['prefix'=>'posts'],function(){
+    /*   --------- GET REQUESTS --------- */
     Route::get('/', [PostController::class, 'getPosts']);
     Route::get('/{id}', [PostController::class, 'getPostById']);
     Route::get('/{id}/detail', [PostController::class, 'getDetailPostById']);
+    Route::get('/{id}/comments',[PostController::class,'getComments']);
+
+    /*   --------- POST REQUESTS --------- */
     Route::post('/', [PostController::class, 'store']);
-    Route::post('/edit/{id}', [PostController::class, 'update']);
-    Route::delete('/{id}', [PostController::class, 'delete']);
     Route::post('/like',[PostController::class,'likePost']);
-    // Route::post('/comment',[PostController::class,'commentPost']);
+    Route::post('/comment',[PostController::class,'commentPost']);
     Route::post('/download',[PostController::class,'download']);
+
+    /*   --------- PUT/PATCH REQUESTS --------- */
+    Route::match(['put', 'patch'],'/{id}', [PostController::class, 'updatePost']);
+    Route::match(['put', 'patch'],'/{id}/comment',[PostController::class,'updateComment']);
+
+    /*   --------- DELETE REQUESTS --------- */
+    Route::delete('/{id}', [PostController::class, 'deletePost']);
+    Route::delete('/{id}/comment', [PostController::class, 'deleteComment']);
 });
 
 

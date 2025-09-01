@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\File;
 use App\Models\Post;
+use App\Models\PostComment;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
+use id;
 
 class PostController extends Controller
 {
@@ -27,7 +29,7 @@ class PostController extends Controller
                     $q->where('user_id', $request->user()->id);
                 },
             ])
-            ->when($sortBy,function($query,$sortBy){
+            ->when($sortBy, function ($query, $sortBy) {
                 $sort = explode(',', $sortBy);
                 $query->orderBy($sort[0], $sort[1]);
             })
@@ -131,18 +133,22 @@ class PostController extends Controller
         ]);
     }
 
-/*
+    /*
   |-------------------------------------------------------------------------
   | Get Post By ID
   |--------------------------------------------------------------------------
   */
-    public function getDetailPostById(Request $request,$id){
-        $post = Post::where('id',$id)->with(['user', 'file'])
-            ->withCount('likedUsers')
+    public function getDetailPostById(Request $request, $id)
+    {
+        $post = Post::where('id', $id)
+            ->with(['user', 'file'])
+            ->withCount('likedUsers', 'comments')
             ->withExists([
-                'likedUsers as liked' => function($q) use ($request){
-                    $q->where('user_id',$request->user()->id);
-            }])->first();
+                'likedUsers as liked' => function ($q) use ($request) {
+                    $q->where('user_id', $request->user()->id);
+                },
+            ])
+            ->first();
         if (!$post) {
             return response()->json(['message' => 'Post not found.'], 404);
         }
@@ -157,7 +163,7 @@ class PostController extends Controller
   | Update OR EDIT Post by ID
   |--------------------------------------------------------------------------
   */
-    public function update($id, Request $request)
+    public function updatePost($id, Request $request)
     {
         $post = Post::find($id);
         logger($request);
@@ -229,7 +235,7 @@ class PostController extends Controller
 | DELETE POST BY ID
 |--------------------------------------------------------------------------
 */
-    public function delete($id, Request $request)
+    public function deletePost($id, Request $request)
     {
         $post = Post::find($id);
         if (!$post) {
@@ -278,35 +284,111 @@ class PostController extends Controller
         ]);
     }
 
-        /*
-  |-------------------------------------------------------------------------
-  | Comment Post
-  |--------------------------------------------------------------------------
-  */
-/* public function commentPost(Request $request){
-    $this->validateComment($request);
-    $post = Post::find($request->post_id);
-    $comment = $post->comments()->create([
-        'user_id' => $request->user()->id,
-        'comment' => $request->comment,
-    ]);
-    $comment->load('user');
-    return response()->json([
-        'message' => 'Comment created successfully.',
-        'comment' => $comment,
-    ]);
-}
-private function validateComment(Request $request){
-    return $request->validate([
-        'user_id' => 'required|exists:users,id',
-        'comment'=> 'required|string|max:500',
-    ]);
-} */
     /*
-  |-------------------------------------------------------------------------
-  | DOWNLOAD FILE
-  |--------------------------------------------------------------------------
-  */
+|-------------------------------------------------------------------------
+| Comment Post
+|--------------------------------------------------------------------------
+*/
+    public function commentPost(Request $request)
+    {
+        $this->validateComment($request);
+        $post = Post::find($request->post_id);
+        $comment = $post->comments()->create([
+            'post_id' => $request->post_id,
+            'comment' => $request->comment,
+            'user_id' => $request->user()->id,
+        ]);
+        $comment->load('user');
+        return response()->json([
+            'message' => 'Commented successfully.',
+            'comment' => $comment,
+        ]);
+    }
+    private function validateComment(Request $request)
+    {
+        return $request->validate([
+            'post_id' => 'required|exists:posts,id',
+            'comment' => 'required|string|max:1000',
+        ]);
+    }
+
+    /*
+|-------------------------------------------------------------------------
+| FETCH COMMENT OF HTE POST
+|--------------------------------------------------------------------------
+*/
+    public function getComments($id, Request $request)
+    {
+        $sortBy = $request->query('sortBy');
+        $perPage = $request->query('perPage');
+        $currentPage = $request->query('currentPage');
+        $comments = PostComment::where('post_id', $id)
+            ->with(['user'])
+            ->when($sortBy, function ($query, $sortBy) {
+                $sort = explode(',', $sortBy);
+                $query->orderBy($sort[0], $sort[1]);
+            })
+            ->paginate($perPage, ['*'], 'page', $currentPage);
+        return response()->json([
+            'message' => 'Comments fetched successfully.',
+            'comments' => $comments,
+        ]);
+    }
+
+    /*
+|-------------------------------------------------------------------------
+| UPDATE COMMENT
+|--------------------------------------------------------------------------
+*/
+    public function updateComment(Request $request, $id)
+    {
+        $request->validate([
+            'comment' => 'required|string|max:1000',
+        ]);
+        logger($id);
+        $comment = PostComment::find($id);
+        if (!$comment) {
+            return response()->json(['message' => 'Comment not found.'], 404);
+        }
+
+        if ($request->user()->id != $comment->user_id) {
+            return response()->json(['message' => "You don't have permission to update this comment."], 403);
+        }
+        $comment->update([
+            "comment"=> $request->comment,
+        ]);
+        $comment->load(['user','post']);
+        return response()->json([
+            'message' => 'Comment updated successfully.',
+            'comment' => $comment,
+        ]);
+    }
+
+        /*
+|-------------------------------------------------------------------------
+| DELETE COMMENT
+|--------------------------------------------------------------------------
+*/
+    public function deleteComment(Request $request,$id){
+        $user = $request->user();
+        $comment = PostComment::find($id);
+        if (!$comment) {
+            return response()->json(['message' => 'Comment not found.'], 404);
+        }
+        if ($user->id != $comment->user_id) {
+            return response()->json(['message' => "You don't have permission to delete this comment."], 403);
+        }
+        $comment->delete();
+        return response()->json([
+            'message' => 'Comment deleted successfully.',
+            'id' => $comment->id
+        ]);
+    }
+    /*
+|-------------------------------------------------------------------------
+| DOWNLOAD FILE
+|--------------------------------------------------------------------------
+*/
     public function download(Request $request)
     {
         $file = $request->input('path');

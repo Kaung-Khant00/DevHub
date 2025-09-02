@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use App\Models\File;
+use App\Models\User;
 use App\Models\PostLike;
 use App\Models\PostComment;
+use App\Models\DeveloperConnection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -54,6 +56,19 @@ class Post extends Model
     {
         return $this->hasMany(PostComment::class);
     }
+    public function postFollowers()
+    {
+        return $this->hasManyThrough(
+            DeveloperConnection::class,
+            User::class,
+            'id',
+            'following_id',
+            'user_id',
+            'id'
+        );
+    }
+
+
 
     // ───── Accessors ─────
     public function getCreatedAtFormattedAttribute(): string

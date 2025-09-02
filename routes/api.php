@@ -66,6 +66,12 @@ Route::group(['prefix'=>'posts'],function(){
     Route::delete('/{id}/comment', [PostController::class, 'deleteComment']);
 });
 
+Route::group(['prefix'=>'users'],function(){
+    /*   --------- GET REQUESTS --------- */
+Route::get('/{id}/follow', [UserController::class, 'followUser']);
+
+});
+
 
 Route::post('/set/role', [AuthController::class, 'setRole']);
 });

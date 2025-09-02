@@ -119,11 +119,13 @@ class User extends Authenticatable
     |-------------------------------------------------------------------------
     |
     |
-    |                   ATTRIBUTES AND APPENDS
+    |                  APPENDED ATTRIBUTES
     |
     |
     |--------------------------------------------------------------------------
   */
+    protected $appends = ['profile_image_url', 'posts_count', 'followers_count', 'followings_count', 'groups_count'];
+
     public function getPostsCountAttribute()
     {
         return $this->posts()->count();
@@ -148,8 +150,6 @@ class User extends Authenticatable
         // Example: "27 Aug 2025"
         return $date->format('d M Y');
     }
-    /*  These functions make the frontend to be simple :) */
-    protected $appends = ['profile_image_url', 'posts_count', 'followers_count', 'followings_count', 'groups_count'];
     public function getProfileImageUrlAttribute()
     {
         /*  I return if the profile link is URL not path */
@@ -159,4 +159,13 @@ class User extends Authenticatable
         /*  I return the asset URL  */
         return $this->profile_url ? asset('/storage/' . $this->profile_url) : asset('/defaultImages/profileImage.jpg');
     }
+    public function toggleFollowingUser($userId){
+        if($this->followings()->where('id',$userId)->exists()){
+            $this->followings()->detach($userId);
+        }
+        else{
+            $this->followings()->syncWithoutDetaching([$userId]);
+        }
+    }
+
 }

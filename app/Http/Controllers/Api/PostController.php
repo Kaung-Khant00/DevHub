@@ -28,6 +28,9 @@ class PostController extends Controller
                 'likedUsers as liked' => function ($q) use ($request) {
                     $q->where('user_id', $request->user()->id);
                 },
+     'postFollowers as followed' => function ($q) use ($request) {
+            $q->where('follower_id', $request->user()->id); // <--- KEY CHANGE
+        },
             ])
             ->when($sortBy, function ($query, $sortBy) {
                 $sort = explode(',', $sortBy);

@@ -12,7 +12,6 @@ use App\Models\GroupPost;
 use App\Models\JobProposal;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
-use App\Models\DeveloperConnection;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -162,9 +161,11 @@ class User extends Authenticatable
     public function toggleFollowingUser($userId){
         if($this->followings()->where('id',$userId)->exists()){
             $this->followings()->detach($userId);
+            return false;
         }
         else{
             $this->followings()->syncWithoutDetaching([$userId]);
+            return true;
         }
     }
 

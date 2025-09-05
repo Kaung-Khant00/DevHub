@@ -31,12 +31,18 @@ Route::post('/logout', [AuthController::class, 'logout']);
 |--------------------------------------------------------------------------
 */
 Route::group(['prefix'=>'profile'],function(){
+    /*   --------- GET REQUESTS --------- */
+        /*  get the user data */
     Route::get('/', [ProfileController::class, 'getProfile']);
+    Route::get('/posts',[ProfileController::class,'getUserPosts']);
+        /*  get the OTHER use data */
+    Route::get('/developer/{id}', [ProfileController::class, 'getDeveloperProfile']);
+
+    /*   --------- POST REQUESTS --------- */
     Route::post('/developer/edit/{id}', [ProfileController::class, 'editProfile']);
     Route::post('/developer/image/edit', [ProfileController::class, 'uploadProfileImage']);
-    Route::delete('/developer/image', [ProfileController::class, 'deleteProfileImage']);
-    Route::get('/posts',[ProfileController::class,'getUserPosts']);
     Route::post('/posts/search',[ProfileController::class,'searchPosts']);
+    Route::delete('/developer/image', [ProfileController::class, 'deleteProfileImage']);
 });
 
 /*

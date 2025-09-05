@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\Post;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -155,6 +156,12 @@ class ProfileController extends Controller
         $posts = $user
             ->posts()
             ->with(['user', 'file'])
+            ->withCount('likedUsers')
+            ->withExists([
+                'likedUsers as liked' => function ($q) use ($request) {
+                    $q->where('user_id', $request->user()->id);
+                },
+            ])
             ->orderBy('created_at', 'desc')
             ->get();
         return response()->json([
@@ -176,10 +183,48 @@ class ProfileController extends Controller
             ->when($request->searchQuery, function ($query, $searchQuery) {
                 return $query->whereAny(['title', 'content', 'code_lang'], 'LIKE', '%' . $searchQuery . '%');
             })
-            ->orderBy('created_at', $request->input('sortBy','desc'))
+            ->orderBy('created_at', $request->input('sortBy', 'desc'))
             ->get();
         return response()->json([
             'message' => 'Posts retrieved successfully.',
+            'posts' => $posts,
+        ]);
+    }
+    public function getDeveloperProfile(Request $request,$id)
+    {
+        $sortBy = $request->query('sortBy', 'created_at,desc');
+        $user = User::where('id', $id)
+            ->with('developerProfile')
+            ->withCount(['posts','followers','followings'])
+            ->withExists([
+                'followings as isFollower' => function ($q) use ($request) {
+                    $q->where('following_id', $request->user()->id);
+                },
+                'followers as isFollowing' => function ($q) use ($request) {
+                    $q->where('follower_id', $request->user()->id);
+                },
+
+            ])
+            ->first();
+        $posts = Post::where('user_id',$id)
+            ->with(['user', 'file'])
+            ->withCount('likedUsers')
+            ->withExists([
+                'likedUsers as liked' => function ($q) use ($request) {
+                    $q->where('user_id', $request->user()->id);
+                },
+                'postFollowers as followed' => function ($q) use ($request) {
+                    $q->where('follower_id', $request->user()->id);
+                },
+            ])
+            ->when($sortBy, function ($query, $sortBy) {
+                $sort = explode(',', $sortBy);
+                $query->orderBy($sort[0], $sort[1]);
+            })
+            ->get();
+        return response()->json([
+            'user' => $user,
+            'profile' => $user->developerProfile,
             'posts' => $posts,
         ]);
     }

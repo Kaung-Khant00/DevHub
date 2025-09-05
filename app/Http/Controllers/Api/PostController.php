@@ -29,7 +29,7 @@ class PostController extends Controller
                     $q->where('user_id', $request->user()->id);
                 },
      'postFollowers as followed' => function ($q) use ($request) {
-            $q->where('follower_id', $request->user()->id); // <--- KEY CHANGE
+            $q->where('follower_id', $request->user()->id);
         },
             ])
             ->when($sortBy, function ($query, $sortBy) {
@@ -124,9 +124,13 @@ class PostController extends Controller
   | Get Post By ID
   |--------------------------------------------------------------------------
   */
-    public function getPostById($id)
+    public function getPostById($id,Request $request)
     {
-        $post = Post::with('user')->find($id);
+        $post = Post::with('user')->withExists([
+            'postFollowers as followed' => function ($q) use ($request) {
+                $q->where('follower_id', $request->user()->id);
+            }
+        ])->find($id);
         if (!$post) {
             return response()->json(['message' => 'Post not found.'], 404);
         }

@@ -10,10 +10,12 @@ class UserController extends Controller
 {
     public function followUser(Request $request,$id){
         $user = User::find($request->user()->id);
-        $user->toggleFollowingUser($id);
+        $followed = $user->toggleFollowingUser($id);
         return response()->json([
             "message"=> "Toggle following successfully.",
-            "user" => $user
+            "user" => $user,
+            'id' => $id,
+            'followed' => $followed
         ]);
     }
 }

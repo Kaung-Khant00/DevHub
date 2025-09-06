@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('developer_connections', function (Blueprint $table) {
-            $table->foreignId('follower_id')->constrained('users');
-            $table->foreignId('following_id')->constrained('users');
+            $table->foreignId('follower_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('following_id')->constrained('users')->onDelete('cascade');
             $table->timestamp('created_at')->useCurrent();
         });
     }

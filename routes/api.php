@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\GroupController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Auth\GitHubController;
 use App\Http\Controllers\Auth\GoogleController;
@@ -70,6 +71,16 @@ Route::group(['prefix'=>'posts'],function(){
     /*   --------- DELETE REQUESTS --------- */
     Route::delete('/{id}', [PostController::class, 'deletePost']);
     Route::delete('/{id}/comment', [PostController::class, 'deleteComment']);
+});
+
+/*
+|--------------------------------------------------------------------------
+|   GROUP ROUTE -----------------------------------------------------------
+|--------------------------------------------------------------------------
+*/
+Route::group(['prefix'=>'groups'],function(){
+    Route::get('/{id}/join', [UserController::class, 'joinGroup']);
+    Route::post('/create',[GroupController::class,'createGroup']);
 });
 
 Route::group(['prefix'=>'users'],function(){

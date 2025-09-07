@@ -15,4 +15,10 @@ class GroupCreationRequest extends Model
     public function user(): BelongsTo{
         return $this->belongsTo(User::class);
     }
+
+    protected $appends = ['image_url'];
+
+    public function getImageUrlAttribute(){
+        return $this->image ? asset('storage/' . $this->image) : null;
+    }
 }

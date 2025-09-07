@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('password')->nullable();
             $table->enum('oauth_provider', ['github','google'])->nullable();
             $table->string('oauth_id')->nullable();
-            $table->enum('role', ['admin', 'developer','client'])->nullable();
+            $table->enum('role', ['ADMIN','SUPER_ADMIN', 'developer','client'])->nullable();
             $table->string('profile_url')->nullable();
             $table->string('main_career')->nullable();
             $table->string('phone',20)->nullable();

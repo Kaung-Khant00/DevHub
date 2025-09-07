@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\ClientProfile;
 use App\Models\DeveloperProfile;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -73,15 +74,21 @@ class AuthController extends Controller
 */
     public function login(Request $request)
     {
+        logger($request->all());
         $this->validateLogin($request);
-        $credentials = $request->only('email', 'password');
-    if (!auth()->attempt($credentials)) {
-        return response()->json(['message' => 'Invalid credentials'], 401);
+        $user = User::where('email', $request->email)->first();
+
+    if (!$user) {
+        return response()->json(['message' => 'User not found.'], 404);
     }
-    $user = auth()->user();
+    if(!Hash::check($request->password, $user->password)){
+        return response()->json(['message' => 'Invalid credentials.'], 401);
+    }
+
     $token = $user->createToken(time())->plainTextToken;
     return response()->json([
         'message' => 'Login successful',
+        'role' => $user->role,
         'token' => $token,
         'user' => $user
     ]);

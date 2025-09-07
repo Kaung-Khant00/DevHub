@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\GroupCreationRequestController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\GroupController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Auth\GitHubController;
@@ -25,7 +27,21 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 |--------------------------------------------------------------------------
 */
 Route::group(['middleware'=>'auth:sanctum'],function(){
-Route::post('/logout', [AuthController::class, 'logout']);
+/*
+|----------------------------------------------------------------------
+|:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+|   ADMIN ROUTE :::::::::::::::::::::::::::::::::::::::::::::
+|:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+|----------------------------------------------------------------------
+*/
+Route::group(['prefix'=>'admin','middleware'=> 'role:ADMIN,SUPER_ADMIN'],function(){
+    Route::get('/', [AdminController::class,'getAdminUser']);
+
+    Route::group(['prefix'=>'group_requests'],function(){
+    Route::get('/', [GroupCreationRequestController::class,'getGroupRequests']);
+    });
+});
+
 /*
 |--------------------------------------------------------------------------
 |   PROFILE ROUTE -----------------------------------------------------------
@@ -91,6 +107,8 @@ Route::get('/{id}/follow', [UserController::class, 'followUser']);
 
 
 Route::post('/set/role', [AuthController::class, 'setRole']);
+Route::post('/logout', [AuthController::class, 'logout']);
+
 });
 
 

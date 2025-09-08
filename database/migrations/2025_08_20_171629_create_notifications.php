@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users');
             $table->string('type');
+            $table->string('title');
+            $table->string('message');
             $table->json('data');
             $table->boolean('is_read')->default(false);
             $table->timestamps();

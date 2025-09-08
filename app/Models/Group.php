@@ -9,11 +9,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Group extends Model
 {
-    protected $fillable = ['name', 'description','image', 'founder_id'];
+    protected $fillable = ['name', 'description','image', 'user_id', 'tags'];
 
+    protected $casts = [
+        'tags' => 'array',
+    ];
     public function founder(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'founder_id');
+        return $this->belongsTo(User::class);
     }
     public function members(): BelongsToMany
     {

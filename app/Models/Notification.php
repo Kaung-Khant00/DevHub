@@ -8,8 +8,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Notification extends Model
 {
-    protected $fillable = ['user_id','type','data','is_read'];
+    protected $fillable = ['user_id','type','data','is_read','message','title'];
 
+    protected $casts = [
+        'data'=> 'array',
+    ];
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

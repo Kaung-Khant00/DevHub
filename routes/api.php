@@ -38,7 +38,9 @@ Route::group(['prefix'=>'admin','middleware'=> 'role:ADMIN,SUPER_ADMIN'],functio
     Route::get('/', [AdminController::class,'getAdminUser']);
 
     Route::group(['prefix'=>'group_requests'],function(){
-    Route::get('/', [GroupCreationRequestController::class,'getGroupRequests']);
+        Route::get('/', [GroupCreationRequestController::class,'getGroupRequests']);
+        Route::get('/{id}/approve', [GroupCreationRequestController::class,'approveGroupRequest']);
+        Route::get('/{id}/reject', [GroupCreationRequestController::class,'rejectGroupRequest']);
     });
 });
 

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GroupCreationRequest extends Model
 {
-    protected $fillable = ['name','user_id','description','image','tags'];
+    protected $fillable = ['name','user_id','description','image','tags','status'];
     protected $casts = [
         'tags'=> 'array',
     ];

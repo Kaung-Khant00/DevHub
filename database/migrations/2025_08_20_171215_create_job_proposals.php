@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('developer_id')->constrained('users');
             $table->text('proposal_text');
             $table->string('expected_salary',20);
-            $table->enum('status',['pending','accepted','rejected'])->default('pending');
+            $table->enum('status',['pending','approved','rejected'])->default('pending');
             $table->timestamps();
         });
     }

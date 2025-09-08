@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreignId('file_id')->nullable()->constrained('files');
             $table->mediumText('code')->nullable();
             $table->string('code_lang')->nullable()->default('not specified');
-            $table->json('tags')->nullable();
+            $table->text('tags')->nullable();
             $table->timestamps();
         });
     }

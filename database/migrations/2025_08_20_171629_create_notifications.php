@@ -13,12 +13,9 @@ return new class extends Migration
     {
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('recipient_id')->constrained('users');
-            $table->foreignId('sender_id')->constrained('users');
-            $table->enum('type',['system','job','group','qa','rating'])->default('system');
-            $table->integer('related_id')->nullable();
-            $table->string('title');
-            $table->string('message');
+            $table->foreignId('user_id')->constrained('users');
+            $table->string('type');
+            $table->json('data');
             $table->boolean('is_read')->default(false);
             $table->timestamps();
         });

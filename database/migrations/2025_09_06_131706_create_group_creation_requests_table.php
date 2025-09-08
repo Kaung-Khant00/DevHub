@@ -17,7 +17,8 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users');
             $table->string('description')->nullable();
             $table->string('image')->nullable();
-            $table->json('tags')->nullable();
+            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->text('tags')->nullable();
             $table->timestamps();
         });
     }

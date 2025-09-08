@@ -8,11 +8,27 @@ use Illuminate\Http\Request;
 
 class GroupCreationRequestController extends Controller
 {
-        /*
-  |-------------------------------------------------------------------------
-  | GET ALL GROUP CREATION REQUEST
-  |--------------------------------------------------------------------------
-  */
+
+/*
+|-------------------------------------------------------------------------
+| GET ALL GROUP CREATION REQUEST
+|--------------------------------------------------------------------------
+*/
+ public function getAllGroupRequests(Request $request){
+        $per_page = $request->query('per_page', 10);
+        $page = $request->query('page',1);
+        $groupCreationRequests = GroupCreationRequest::with('user')->latest()->paginate($per_page, ['*'],'page', $page);
+        return response()->json([
+            'group_creation_requests' => $groupCreationRequests,
+            'message' => 'ALL Group Creation Requests Fetched Successfully'
+        ]);
+    }
+
+/*
+|-------------------------------------------------------------------------
+| GET GROUP CREATION REQUEST WITH STATUS
+|--------------------------------------------------------------------------
+*/
     public function getGroupRequests(Request $request){
         $per_page = $request->query('per_page', 10);
         $page = $request->query('page',1);
@@ -37,7 +53,7 @@ class GroupCreationRequestController extends Controller
 
         return response()->json([
             'message' => 'Group Creation Request Approved Successfully',
-            'group_creation_request'=> $groupCreationRequest->refresh()
+            'group_creation_request'=> $groupCreationRequest->refresh()->load('user')
         ]);
     }
 
@@ -54,7 +70,7 @@ class GroupCreationRequestController extends Controller
 
         return response()->json([
             'message' => 'Group Creation Request Denied Successfully',
-            'group_creation_request'=> $groupCreationRequest
+            'group_creation_request'=> $groupCreationRequest->refresh()->load('user')
         ]);
     }
 }

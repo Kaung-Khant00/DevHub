@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\User;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -20,5 +21,8 @@ class GroupCreationRequest extends Model
 
     public function getImageUrlAttribute(){
         return $this->image ? asset('storage/' . $this->image) : null;
+    }
+    public function serializeDate(DateTimeInterface $date){
+        return $date->format('d M Y');
     }
 }

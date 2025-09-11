@@ -12,6 +12,7 @@ use App\Models\GroupPost;
 use App\Models\JobProposal;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\GroupCreationRequest;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -81,6 +82,10 @@ class User extends Authenticatable
     public function notifications(): HasMany
     {
         return $this->hasMany(Notification::class);
+    }
+    public function groupCreationRequests(): HasMany
+    {
+        return $this->hasMany(GroupCreationRequest::class);
     }
     public function questions(): HasMany
     {

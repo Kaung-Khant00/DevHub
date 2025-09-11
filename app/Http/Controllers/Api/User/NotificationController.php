@@ -57,4 +57,20 @@ class NotificationController extends Controller
             'message'=> 'All Read Notifications deleted successfully.',
         ]);
     }
+    public function getGroupRequestsNotification(Request $request){
+        $user = $request->user();
+        $groupCreationRequests = $user->groupCreationRequests()->get();
+        return response()->json([
+            'message' => 'Notifications retrieved successfully.',
+            'group_creation_requests' => $groupCreationRequests,
+        ]);
+    }
+    public function getGroupRequestsNotificationById( Request $request,$id){
+        $user = $request->user();
+        $groupCreationRequest = $user->groupCreationRequests()->where('id', $id)->first();
+        return response()->json([
+            'message' => 'Group Create Request retrieved successfully.',
+            'group_creation_request' => $groupCreationRequest,
+        ]);
+    }
 }

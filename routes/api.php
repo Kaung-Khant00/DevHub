@@ -113,6 +113,8 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 */
 Route::group(['prefix' => 'notifications'],function(){
     Route::get('/',[NotificationController::class,'getNotifications']);
+    Route::get('/group_requests',[NotificationController::class,'getGroupRequestsNotification']);
+    Route::get('/{id}/group_requests',[NotificationController::class,'getGroupRequestsNotificationById']);
     Route::get('/{id}',[NotificationController::class,'getNotificationById']);
 
     Route::match(['put', 'patch'],'/{id}/read',[NotificationController::class,'updateNotificationReadStatus'])->whereNumber('id');

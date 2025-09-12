@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\GroupCreationRequest;
 
-class GroupCreationRequestController extends Controller
+class AdminGroupCreationRequestController extends Controller
 {
 
 /*

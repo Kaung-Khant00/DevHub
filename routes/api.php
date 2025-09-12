@@ -12,6 +12,7 @@ use App\Http\Controllers\Auth\GitHubController;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Api\User\NotificationController;
 use App\Http\Controllers\Api\User\GroupCreationRequestController;
+use App\Http\Controllers\Api\Admin\AdminGroupCreationRequestController;
 
 /*  Default route from laravel :) */
 Route::group(['middleware' => 'auth:sanctum'], function () {
@@ -37,10 +38,16 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::get('/', [AdminController::class, 'getAdminUser']);
 
         Route::group(['prefix' => 'group_requests'], function () {
-            Route::get('/', [GroupCreationRequestController::class, 'getGroupRequests']);
-            Route::get('/all', [GroupCreationRequestController::class, 'getAllGroupRequests']);
-            Route::get('/{id}/approve', [GroupCreationRequestController::class, 'approveGroupRequest']);
-            Route::get('/{id}/reject', [GroupCreationRequestController::class, 'rejectGroupRequest']);
+            Route::get('/', [AdminGroupCreationRequestController::class, 'getGroupRequests']);
+            Route::get('/all', [AdminGroupCreationRequestController::class, 'getAllGroupRequests']);
+            Route::get('/{id}/approve', [AdminGroupCreationRequestController::class, 'approveGroupRequest']);
+            Route::get('/{id}/reject', [AdminGroupCreationRequestController::class, 'rejectGroupRequest']);
+        });
+    });
+
+    Route::group(['prefix' => 'super_admin', 'middleware' => 'role:SUPER_ADMIN'],function (){
+        Route::group(['prefix'=>'users'],function(){
+            Route::get('/', [\App\Http\Controllers\Api\SuperAdmin\UserController::class,'getUsers']);
         });
     });
 

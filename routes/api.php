@@ -11,7 +11,7 @@ use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Auth\GitHubController;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Api\User\NotificationController;
-use App\Http\Controllers\Api\Admin\GroupCreationRequestController;
+use App\Http\Controllers\Api\User\GroupCreationRequestController;
 
 /*  Default route from laravel :) */
 Route::group(['middleware' => 'auth:sanctum'], function () {
@@ -105,6 +105,11 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         /*   --------- GET REQUESTS --------- */
         Route::get('/{id}/follow', [UserController::class, 'followUser']);
     });
+Route::group(['prefix'=>"group_requests"],function(){
+    Route::get('/',[GroupCreationRequestController::class,'getGroupCreationRequests']);
+    Route::get('/{id}',[GroupCreationRequestController::class,'getGroupCreationRequestsById']);
+    Route::delete('/{id}',[GroupCreationRequestController::class,'deleteGroupCreationRequestsById']);
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -113,8 +118,6 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 */
 Route::group(['prefix' => 'notifications'],function(){
     Route::get('/',[NotificationController::class,'getNotifications']);
-    Route::get('/group_requests',[NotificationController::class,'getGroupRequestsNotification']);
-    Route::get('/{id}/group_requests',[NotificationController::class,'getGroupRequestsNotificationById']);
     Route::get('/{id}',[NotificationController::class,'getNotificationById']);
 
     Route::match(['put', 'patch'],'/{id}/read',[NotificationController::class,'updateNotificationReadStatus'])->whereNumber('id');

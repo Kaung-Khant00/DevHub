@@ -105,6 +105,8 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 */
     Route::group(['prefix' => 'groups'], function () {
         Route::get('/{id}/join', [UserController::class, 'joinGroup']);
+        Route::get('/', [GroupController::class, 'getGroups']);
+        Route::get('/{id}', [GroupController::class, 'getGroupDetail']);
         Route::post('/create', [GroupController::class, 'createGroup']);
     });
 

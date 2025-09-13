@@ -2,12 +2,18 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\Group;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\GroupCreationRequest;
 
 class GroupController extends Controller
 {
+        /*
+  |-------------------------------------------------------------------------
+  | CREATE GROUP REQUEST TO THE ADMIN
+  |--------------------------------------------------------------------------
+  */
     public function createGroup(Request $request){
         $this->validateGroup($request);
         $groupData = $this->getGroupCreationRequestData($request);
@@ -37,4 +43,22 @@ class GroupController extends Controller
             'user_id' => $request->user()->id
         ];
     }
+        /*
+  |-------------------------------------------------------------------------
+  | FETCH GROUPS DATA
+  |--------------------------------------------------------------------------
+  */
+  public function getGroups(){
+    $groups = Group::all();
+    return response()->json([
+        'groups' => $groups,
+    ]);
+  }
+  public function getGroupDetail($id){
+    $group = Group::with('user')->where('id',$id)->first();
+    return response()->json([
+        'message'=>'Group retrieved successfully.',
+        'group'=> $group
+    ]);
+  }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\User;
 
+use App\Models\Group;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
@@ -31,9 +32,13 @@ class GroupCreationRequestController extends Controller
     public function deleteGroupCreationRequestsById(Request $request,$id){
         $user = $request->user();
         $groupCreationRequest = $user->groupCreationRequests()->where('id',$id)->first();
+        $group = Group::where('image',$groupCreationRequest->image)->first();
+        if(empty($group)){
         if(!empty($groupCreationRequest->image) && Storage::disk('public')->exists($groupCreationRequest->image)){
             Storage::disk('public')->delete($groupCreationRequest->image);
         }
+        }
+
         $groupCreationRequest->delete();
         return response()->json([
             'message' => 'Group Create Request deleted successfully.',

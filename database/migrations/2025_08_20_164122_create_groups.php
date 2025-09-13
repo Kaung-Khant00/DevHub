@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('image')->nullable();
             $table->foreignId('user_id')->constrained('users');
             $table->text('tags')->nullable();
+            $table->text('rules')->nullable();
             $table->timestamps();
         });
     }

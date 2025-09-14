@@ -13,10 +13,15 @@ return new class extends Migration
     {
         Schema::create('group_posts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('group_id')->constrained();
-            $table->foreignId('user_id')->constrained();
+            $table->foreignId('group_id')->constrained('groups');
+            $table->foreignId('user_id')->constrained('users');
+            $table->string('title')->nullable();
             $table->text('content');
             $table->string('image')->nullable();
+            $table->foreignId('file_id')->nullable()->constrained('files');
+            $table->mediumText('code')->nullable();
+            $table->string('code_lang')->nullable()->default('not specified');
+            $table->text('tags')->nullable();
             $table->timestamps();
         });
     }

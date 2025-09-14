@@ -9,8 +9,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GroupPost extends Model
 {
-    protected $fillable = ['group_id', 'user_id', 'content', 'image'];
+    protected $fillable = ['group_id', 'user_id','title', 'content', 'image','file_id','code','code_lang','tags'];
 
+    protected $casts = [
+        'tags'=> 'array',
+    ];
     public function group(): BelongsTo
     {
         return $this->belongsTo(Group::class);

@@ -173,5 +173,16 @@ class User extends Authenticatable
             return true;
         }
     }
+    public function toggleJoinGroup($groupId){
+
+        if($this->groups()->where('group_id',$groupId)->exists()){
+            $this->groups()->detach($groupId);
+            return false;
+        }
+        else{
+            $this->groups()->syncWithoutDetaching([$groupId]);
+            return true;
+        }
+    }
 
 }

@@ -33,6 +33,8 @@ class GroupController extends Controller
             'image'=> 'nullable|image|mimes:jpg,jpeg,webp,png|max:2048',
             'tags' => 'nullable|array',
             'tags.*'=> 'nullable|string|max:40',
+            'rules'=> 'nullable|string|max:1000',
+            'rules.*'=> 'nullable|string|max:200',
         ]);
     }
     public function getGroupCreationRequestData(Request $request){
@@ -48,14 +50,22 @@ class GroupController extends Controller
   | FETCH GROUPS DATA
   |--------------------------------------------------------------------------
   */
-  public function getGroups(){
-    $groups = Group::all();
+  public function getGroups(Request $request){
+    $groups = Group::withExists([
+        'members as joined' => function ($q) use ($request) {
+            $q->where('user_id', $request->user()->id);
+        }
+    ])->withCount('members')->get();
     return response()->json([
         'groups' => $groups,
     ]);
   }
   public function getGroupDetail($id){
-    $group = Group::with('user')->where('id',$id)->first();
+    $group = Group::with('user')->where('id',$id)->withExists(
+        ['members as joined' => function ($q) use ($id) {
+            $q->where('group_id', $id);
+        }]
+    )->withCount('members')->first();
     return response()->json([
         'message'=>'Group retrieved successfully.',
         'group'=> $group

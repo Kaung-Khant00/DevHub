@@ -2,9 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Post;
 use App\Models\User;
 use DateTimeInterface;
+use App\Models\GroupRule;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
@@ -23,6 +26,12 @@ class Group extends Model
     public function members(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'group_members', 'group_id', 'user_id');
+    }
+    public function rules(): HasMany{
+        return $this->hasMany(GroupRule::class);
+    }
+    public function posts(): HasMany{
+        return $this->hasMany(Post::class);
     }
 
     protected $appends = ['image_url'];

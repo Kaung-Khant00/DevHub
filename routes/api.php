@@ -135,9 +135,14 @@ Route::middleware('auth:sanctum')->group(function () {
     | if you later want to follow REST principles (action that mutates server state).
     */
     Route::prefix('groups')->group(function () {
+        //GET
         Route::get('/',         [GroupController::class, 'getGroups']);
         Route::get('/{id}',     [GroupController::class, 'getGroupDetail']);
-        Route::get('/{id}/join', [UserController::class, 'joinGroup']); // keep as-is for now
+        Route::get('/{id}/join', [GroupController::class, 'joinGroup']);
+        Route::get('/{groupId}/posts', [GroupPostController::class, 'getGroupPosts']);
+        Route::get('/{postId}/like', [GroupPostController::class, 'likeGroupPost']);
+
+        //POST
         Route::post('/create',  [GroupController::class, 'createGroup']);
         Route::post('/{id}/post', [GroupPostController::class, 'createGroupPost']);
 

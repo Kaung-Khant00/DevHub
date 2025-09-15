@@ -19,20 +19,4 @@ class UserController extends Controller
             'followed' => $followed
         ]);
     }
-    public function joinGroup(Request $request,$id){
-        $user = $request->user();
-        $group = Group::find($id);
-        if($group->user_id == $user->id){
-            return response()->json([
-                "message"=> "You can't join your own group.",
-                'id' => $id
-            ]);
-        }
-        $isJoined = $user->toggleJoinGroup($id);
-        return response()->json([
-            "message"=> "Toggle join group successfully.",
-            'joined'=> $isJoined,
-            'id' => $id
-        ]);
-    }
 }

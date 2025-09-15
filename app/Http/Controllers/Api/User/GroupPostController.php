@@ -81,4 +81,32 @@ class GroupPostController extends Controller
             'type' => $request->input('fileInfo.type'),
         ];
     }
+
+    public function getGroupPosts(Request $request,$groupId){
+        $group = Group::findOrFail($groupId);
+        $page = $request->query('page',1);
+        $per_page = $request->query('per_page', 10);
+        $posts = GroupPost::where('group_id', $group->id)
+        ->with(['user','file'])
+        ->withCount('likedUsers')
+        ->withExists([
+            'likedUsers as liked' => function ($q) use ($request) {
+                $q->where('user_id', $request->user()->id);
+            }
+        ])
+        ->paginate($per_page, ['*'], 'page', $page);
+        return response()->json([
+            'posts' => $posts,
+        ]);
+    }
+
+    public function likeGroupPost($postId,Request $request){
+        $post = GroupPost::findOrFail($postId);
+        $liked = $post->toggleGroupPostLike($request->user()->id);
+        return response()->json([
+            'message' => 'Post liked successfully.',
+            'liked' => $liked,
+            'post' => $post->loadCount('likedUsers'),
+        ]);
+    }
 }

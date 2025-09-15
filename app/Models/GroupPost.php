@@ -5,10 +5,12 @@ namespace App\Models;
 use App\Models\File;
 use App\Models\User;
 use App\Models\Group;
+use App\Models\DeveloperConnection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class GroupPost extends Model
 {
@@ -43,6 +45,15 @@ class GroupPost extends Model
     }
     public function likedUsers(): BelongsToMany{
         return $this->belongsToMany(User::class, 'group_post_likes', 'post_id', 'user_id');
+    }
+    public function postFollowers(): HasManyThrough{
+        return $this->hasManyThrough(
+            DeveloperConnection::class,
+            User::class,
+            'id',
+            'following_id',
+            'user_id',
+            'id');
     }
 
     public function toggleGroupPostLike($user_id){

@@ -140,6 +140,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}',     [GroupController::class, 'getGroupDetail']);
         Route::get('/{id}/join', [GroupController::class, 'joinGroup']);
         Route::get('/{groupId}/posts', [GroupPostController::class, 'getGroupPosts']);
+        Route::get('/{postId}/posts/detail', [GroupPostController::class, 'getGroupPostDetailById']);
         Route::get('/{postId}/like', [GroupPostController::class, 'likeGroupPost']);
 
         //POST

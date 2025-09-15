@@ -109,4 +109,48 @@ class GroupPostController extends Controller
             'post' => $post->loadCount('likedUsers'),
         ]);
     }
+    public function getDetailPostById(Request $request, $id)
+    {
+        $post = GroupPost::where('id', $id)
+            ->with(['user', 'file'])
+            ->withCount('likedUsers', 'comments')
+            ->withExists([
+                'likedUsers as liked' => function ($q) use ($request) {
+                    $q->where('user_id', $request->user()->id);
+                },
+                'postFollowers as followed' => function ($q) use ($request) {
+                    $q->where('follower_id', $request->user()->id);
+                },
+            ])
+            ->first();
+        if (!$post) {
+            return response()->json(['message' => 'Post not found.'], 404);
+        }
+        return response()->json([
+            'message' => 'Detail Post retrieved successfully.',
+            'post' => $post,
+        ]);
+    }
+
+    public function getGroupPostDetailById($postId,Request $request){
+          $post = GroupPost::where('id', $postId)
+            ->with(['user', 'file'])
+            ->withCount('likedUsers')
+            ->withExists([
+                'likedUsers as liked' => function ($q) use ($request) {
+                    $q->where('user_id', $request->user()->id);
+                },
+                'postFollowers as followed' => function ($q) use ($request) {
+                    $q->where('follower_id', $request->user()->id);
+                },
+            ])
+            ->first();
+        if (!$post) {
+            return response()->json(['message' => 'Group Post not found.'], 404);
+        }
+        return response()->json([
+            'message' => 'Detail Group Post retrieved successfully.',
+            'post' => $post,
+        ]);
+    }
 }

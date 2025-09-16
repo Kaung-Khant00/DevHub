@@ -153,4 +153,31 @@ class GroupPostController extends Controller
             'post' => $post,
         ]);
     }
+    public function createGroupPostComment(Request $request,$postId)
+    {
+        $request->validate([
+            'comment' => 'required|string|max:1000',
+        ]);
+        $post = GroupPost::findOrFail($postId);
+        $comment = $post->comments()->create([
+            'post_id' => $postId,
+            'user_id' => $request->user()->id,
+            'comment' => $request->comment,
+        ]);
+        $comment->load('user');
+        return response()->json([
+            'message' => 'Commented successfully.',
+            'comment' => $comment,
+        ]);
+    }
+
+    public function getGroupPostComments($postId,Request $request){
+        $post = GroupPost::findOrFail($postId);
+        $page = $request->query('page',1);
+        $per_page = $request->query('per_page', 10);
+        $comments = $post->comments()->with('user')->paginate($per_page, ['*'], 'page', $page);
+        return response()->json([
+            'comments' => $comments,
+        ]);
+    }
 }

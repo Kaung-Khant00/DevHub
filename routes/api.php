@@ -139,15 +139,20 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/',         [GroupController::class, 'getGroups']);
         Route::get('/{id}',     [GroupController::class, 'getGroupDetail']);
         Route::get('/{id}/join', [GroupController::class, 'joinGroup']);
-        Route::get('/{groupId}/posts', [GroupPostController::class, 'getGroupPosts']);
-        Route::get('/{postId}/posts/detail', [GroupPostController::class, 'getGroupPostDetailById']);
         Route::get('/{postId}/like', [GroupPostController::class, 'likeGroupPost']);
 
         //POST
         Route::post('/create',  [GroupController::class, 'createGroup']);
         Route::post('/{id}/post', [GroupPostController::class, 'createGroupPost']);
 
+        Route::prefix('posts')->group(function () {
+        Route::post('/{postId}/comments', [GroupPostController::class, 'createGroupPostComment']);
+        Route::get('/{postId}/comments', [GroupPostController::class, 'getGroupPostComments']);
 
+        Route::get('/{groupId}', [GroupPostController::class, 'getGroupPosts']);
+        Route::get('/{postId}/detail', [GroupPostController::class, 'getGroupPostDetailById']);
+
+        });
     });
 
     /*

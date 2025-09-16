@@ -60,10 +60,10 @@ class GroupController extends Controller
         'groups' => $groups,
     ]);
   }
-  public function getGroupDetail($id){
+  public function getGroupDetail($id,Request $request){
     $group = Group::with('user')->where('id',$id)->withExists(
-        ['members as joined' => function ($q) use ($id) {
-            $q->where('group_id', $id);
+        ['members as joined' => function ($q) use ($request) {
+            $q->where('user_id', $request->user()->id);
         }]
     )->withCount('members')->first();
     return response()->json([

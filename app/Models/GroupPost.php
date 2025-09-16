@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\File;
 use App\Models\User;
 use App\Models\Group;
+use App\Models\GroupPostComment;
 use App\Models\DeveloperConnection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -45,6 +46,9 @@ class GroupPost extends Model
     }
     public function likedUsers(): BelongsToMany{
         return $this->belongsToMany(User::class, 'group_post_likes', 'post_id', 'user_id');
+    }
+    public function comments(): HasMany{
+        return $this->hasMany(GroupPostComment::class,'post_id','id');
     }
     public function postFollowers(): HasManyThrough{
         return $this->hasManyThrough(

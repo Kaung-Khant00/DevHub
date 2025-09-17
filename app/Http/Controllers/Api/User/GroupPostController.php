@@ -6,6 +6,7 @@ use App\Models\File;
 use App\Models\Group;
 use App\Models\GroupPost;
 use Illuminate\Http\Request;
+use App\Models\GroupPostComment;
 use App\Http\Controllers\Controller;
 
 class GroupPostController extends Controller
@@ -156,7 +157,7 @@ class GroupPostController extends Controller
     public function createGroupPostComment(Request $request,$postId)
     {
         $request->validate([
-            'comment' => 'required|string|max:1000',
+            'comment' => 'required|string|max:2500',
         ]);
         $post = GroupPost::findOrFail($postId);
         $comment = $post->comments()->create([
@@ -178,6 +179,42 @@ class GroupPostController extends Controller
         $comments = $post->comments()->with('user')->paginate($per_page, ['*'], 'page', $page);
         return response()->json([
             'comments' => $comments,
+        ]);
+    }
+    public function updateGroupPostComment(Request $request,$postId){
+        $request->validate([
+            'comment' => 'required|string|max:2500',
+        ]);
+        $comment = GroupPostComment::find($postId);
+        if (!$comment) {
+            return response()->json(['message' => 'Comment not found.'], 404);
+        }
+
+        if ($request->user()->id != $comment->user_id) {
+            return response()->json(['message' => "You don't have permission to update this comment."], 403);
+        }
+        $comment->update([
+            "comment"=> $request->comment,
+        ]);
+        $comment->load(['user']);
+        return response()->json([
+            'message' => 'Comment updated successfully.',
+            'comment' => $comment,
+        ]);
+    }
+    public function deleteGroupPostComment(Request $request,$postId){
+        $user = $request->user();
+        $comment = GroupPostComment::find($postId);
+        if (!$comment) {
+            return response()->json(['message' => 'Comment not found.'], 404);
+        }
+        if ($user->id != $comment->user_id) {
+            return response()->json(['message' => "You don't have permission to delete this comment."], 403);
+        }
+        $comment->delete();
+        return response()->json([
+            'message' => 'Comment deleted successfully.',
+            'id' => $comment->id
         ]);
     }
 }

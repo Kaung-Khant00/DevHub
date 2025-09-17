@@ -148,6 +148,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('posts')->group(function () {
         Route::post('/{postId}/comments', [GroupPostController::class, 'createGroupPostComment']);
         Route::get('/{postId}/comments', [GroupPostController::class, 'getGroupPostComments']);
+        Route::delete('/{postId}/comments', [GroupPostController::class, 'deleteGroupPostComment']);
+        Route::match(['put','patch'],'/{postId}/comments', [GroupPostController::class, 'updateGroupPostComment']);
 
         Route::get('/{groupId}', [GroupPostController::class, 'getGroupPosts']);
         Route::get('/{postId}/detail', [GroupPostController::class, 'getGroupPostDetailById']);

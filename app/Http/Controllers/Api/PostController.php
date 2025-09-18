@@ -78,7 +78,7 @@ class PostController extends Controller
         return response()->json(
             [
                 'message' => 'Post created successfully.',
-                'post' => $post,
+                'post' => $post->load('file','user'),
             ],
             201,
         );

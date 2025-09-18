@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('group_post_likes', function (Blueprint $table) {
-            $table->id();
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('post_id')->constrained('group_posts');
             $table->timestamp('created_at')->useCurrent();

@@ -195,7 +195,7 @@ class ProfileController extends Controller
         $sortBy = $request->query('sortBy', 'created_at,desc');
         $user = User::where('id', $id)
             ->with('developerProfile')
-            ->withCount(['posts','followers','followings','joinedGroups'])
+            ->withCount(['posts','followers','followings'])
             ->withExists([
                 'followings as isFollower' => function ($q) use ($request) {
                     $q->where('following_id', $request->user()->id);

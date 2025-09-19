@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\GroupController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Auth\GitHubController;
 use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\Api\User\ReportController;
 use App\Http\Controllers\Api\User\GroupPostController;
 use App\Http\Controllers\Api\User\NotificationController;
 use App\Http\Controllers\Api\User\GroupCreationRequestController;
@@ -189,6 +190,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::match(['put','patch'], '/all/read',    [NotificationController::class, 'updateNotificationAllReadStatus']);
         Route::delete('/{id}',           [NotificationController::class, 'deleteNotification'])->whereNumber('id');
         Route::delete('/all/read',       [NotificationController::class, 'deleteAllReadNotification']);
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Reports
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('reports')->group(function () {
+        Route::post('/{postId}/post', [ReportController::class, 'reportPost']);
     });
 
     /*

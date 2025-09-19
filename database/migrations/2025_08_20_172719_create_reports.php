@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
             $table->enum('reported_type',['user','post','group','question','answer','simple']);
-            $table->integer('reported_id')->nullable();
+            $table->integer('reporting_id')->nullable();
             $table->foreignId('reporter_id')->constrained('users');
             $table->text('reason');
             $table->enum('status',['pending','resolved'])->default('pending');

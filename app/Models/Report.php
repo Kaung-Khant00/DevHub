@@ -8,11 +8,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Report extends Model
 {
-    protected $fillable = ['reported_type','reporting_id','reporter_id','reason','status'];
+    protected $fillable = ['reporter_id','reason','status'];
 
     public function reporter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reporter_id');
+    }
+    public function reportable (){
+        return $this->morphTo();
     }
 
 }

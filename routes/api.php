@@ -14,6 +14,7 @@ use App\Http\Controllers\Auth\GitHubController;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Api\User\ReportController;
 use App\Http\Controllers\Api\User\GroupPostController;
+use App\Http\Controllers\Api\Admin\AdminReportController;
 use App\Http\Controllers\Api\User\NotificationController;
 use App\Http\Controllers\Api\User\GroupCreationRequestController;
 use App\Http\Controllers\Api\Admin\AdminGroupCreationRequestController;
@@ -66,6 +67,9 @@ Route::middleware('auth:sanctum')->group(function () {
                 Route::get('/all',   [AdminGroupCreationRequestController::class, 'getAllGroupRequests']);
                 Route::get('/{id}/approve', [AdminGroupCreationRequestController::class, 'approveGroupRequest']);
                 Route::get('/{id}/reject',  [AdminGroupCreationRequestController::class, 'rejectGroupRequest']);
+            });
+            Route::prefix('reports')->group(function () {
+                Route::get('/', [AdminReportController::class, 'getReports']);
             });
     });
 
@@ -198,7 +202,7 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('reports')->group(function () {
-        Route::post('/{postId}/post', [ReportController::class, 'reportPost']);
+        Route::post('/post', [ReportController::class, 'reportPost']);
     });
 
     /*

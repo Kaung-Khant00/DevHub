@@ -9,17 +9,20 @@ use App\Http\Controllers\Controller;
 
 class ReportController extends Controller
 {
-    public function reportPost($postId, Request $request){
+    public function reportPost(Request $request)
+    {
         $request->validate([
             'reason' => 'required|string|max:1000',
+            'postId' => 'required|exists:posts,id',
         ]);
-        $post = Post::findOrFail($postId);
-        $report = Report::create([
-            'reported_type' => 'post',
-            'reporting_id' => $postId,
-            'reporter_id' => $request->user()->id,
-            'reason' => $request->reason,
-        ]);
+        $post = Post::findOrFail($request->postId);
+        $report = $post->reports()->updateOrCreate(
+            ['reportable_id' => $request->postId, 'reporter_id' => $request->user()->id],
+            [
+                'reporter_id' => $request->user()->id,
+                'reason' => $request->reason,
+            ],
+        );
         return response()->json([
             'message' => 'Reported successfully.',
             'report' => $report,

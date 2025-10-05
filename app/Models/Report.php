@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\User;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -16,6 +17,9 @@ class Report extends Model
     }
     public function reportable (){
         return $this->morphTo();
+    }
+    public function serializeDate(DateTimeInterface $date){
+        return $date->format('d/m/Y h:i A');
     }
 
 }

@@ -70,6 +70,8 @@ Route::middleware('auth:sanctum')->group(function () {
             });
             Route::prefix('reports')->group(function () {
                 Route::get('/', [AdminReportController::class, 'getReports']);
+                Route::get('/detail/{id}', [AdminReportController::class, 'getReportDetail']);
+                Route::post('/status',[AdminReportController::class, 'responseToReporter']);
             });
     });
 

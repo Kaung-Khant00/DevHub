@@ -24,4 +24,22 @@ class AdminReportController extends Controller
             'reports' => $reports,
         ]);
     }
+
+    public function getReportDetail(Request $request,$id){
+        $report = Report::with(['reportable','reporter'])->findOrFail($id);
+        logger(json_encode($report));
+        return response()->json([
+            'report' => $report
+        ]);
+    }
+
+    public function responseToReporter(Request $request){
+        $report = Report::findOrFail($request->id);
+        $report->update([
+            'status' => $request->status
+        ]);
+        return response()->json([
+            'report' => $report->load(['reportable','reporter'])
+        ]);
+    }
 }

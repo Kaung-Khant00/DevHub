@@ -17,7 +17,7 @@ return new class extends Migration
             $table->morphs('reportable');
             $table->foreignId('reporter_id')->constrained('users');
             $table->text('reason');
-            $table->enum('status',['pending','resolved'])->default('pending');
+            $table->enum('status',['pending','resolved','dismissed'])->default('pending');
             $table->timestamps();
         });
     }

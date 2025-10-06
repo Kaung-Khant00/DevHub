@@ -24,6 +24,7 @@ return new class extends Migration
             $table->enum('privacy', ['public', 'private','followers_only'])->default('public');
             $table->boolean('visibility')->default(true);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

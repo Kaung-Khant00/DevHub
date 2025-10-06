@@ -17,6 +17,7 @@ class NotificationController extends Controller
             ->when($type, function ($query) use ($type) {
                 return $query->where('type', $type);
             })
+            ->orderBy('created_at', 'desc')
             ->get();
         return response()->json([
             'message' => 'Notifications retrieved successfully.',
@@ -39,7 +40,7 @@ class NotificationController extends Controller
         ]);
     }
     private function postFromNotification($notification){
-        if(($notification->type === 'POST_REMOVED_TEMPORARY' || $notification->type === 'POST_RESTORED') && isset($notification->data['post_id'])){
+        if(($notification->type === 'POST_REMOVED_TEMPORARY' || $notification->type === 'POST_RESTORED' || $notification->type === 'POST_DELETED_PERMANENTLY' || $notification->type === 'POST_REPORTED') && isset($notification->data['post_id'])){
             return Post::withoutGlobalScopes()->with('user')->find($notification->data['post_id']);
         }
         return null;

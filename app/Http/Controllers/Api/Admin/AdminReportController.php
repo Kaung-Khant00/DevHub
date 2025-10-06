@@ -9,16 +9,20 @@ use App\Http\Controllers\Controller;
 
 class AdminReportController extends Controller
 {
-    public function getReports()
+    public function getReports(Request $request)
     {
-        $page = request()->query('page', 1);
-        $per_page = request()->query('per_page', 10);
-        $type = request()->query('type');
-        logger($type);
+        $page = $request->query('page', 1);
+        $per_page = $request->query('per_page', 10);
+        $type = $request->query('type');
+        $status = $request->query('status');
+        logger($status);
         $reports = Report::when($type, function ($query) use ($type) {
                 return $query->where('reportable_type', $type);
             })
             ->with(['reportable','reporter'])
+            ->when($status,function ($query) use ($status){
+                return $query->where('status', $status);
+            })
             ->paginate($per_page, ['*'], 'page', $page);
             logger($reports);
         return response()->json([
@@ -79,19 +83,43 @@ class AdminReportController extends Controller
             'is_read' => false,
         ]);
     }
-    /*             $table->foreignId('user_id')->constrained('users');
-            $table->string('type');
-            $table->string('title');
-            $table->string('message');
-            $table->json('data');
-            $table->boolean('is_read')->default(false);
-            $table->timestamps(); */
-
-/*     public function deletePostPermanently($id){
+    public function deletePostPermanently($id){
         $report = Report::findOrFail($id);
         $report->reportable()->delete();
+        Notification::create([
+            'user_id' => $report->reportable->user_id,
+            'type' => 'POST_DELETED_PERMANENTLY',
+            'title' => 'Post Removed by Moderation Team',
+            'message' => 'Your post has been permanently removed following a content review for violating our community guidelines.',
+            'data' => ['post_id' => $report->reportable->id],
+            'is_read' => false,
+        ]);
+        $report->update(['status'=>'resolved']);
         return response()->json([
             'report' => $report->load(['reportable','reporter'])
         ]);
-    } */
+    }
+    public function notifyOwner(Request $request){
+        logger($request->all());
+        $this->validateNotification($request);
+        Notification::create([
+            'user_id' => $request->user_id,
+            'type' => 'POST_REPORTED',
+            'title' => $request->title,
+            'message' => $request->message,
+            'data' => ['post_id' => $request->post_id],
+            'is_read' => false,
+        ]);
+        return response()->json([
+            'message' => 'Notification sent successfully.'
+        ]);
+    }
+    private function validateNotification(Request $request){
+        return $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'title' => 'required|string',
+            'message' => 'required|string',
+            'post_id' => 'required|exists:posts,id',
+        ]);
+    }
 }

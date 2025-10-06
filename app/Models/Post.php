@@ -3,12 +3,14 @@
 namespace App\Models;
 
 use App\Models\File;
+use App\Models\Scopes\VisibilityScope;
 use App\Models\User;
 use App\Models\Report;
 use App\Models\PostLike;
 use App\Models\PostComment;
 use App\Models\DeveloperConnection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -26,11 +28,13 @@ class Post extends Model
         'code',
         'code_lang',
         'tags',
-        'title'
+        'title',
+        'visibility'
     ];
 
     protected $casts = [
         'tags' => 'array',
+        'visibility' => 'boolean',
     ];
 
     protected $appends = [
@@ -94,5 +98,20 @@ class Post extends Model
             $this->likedUsers()->syncWithoutDetaching([$userId]);
             return true;
         }
+    }
+
+    /*  scopes */
+    public function scopePublic(Builder $query){
+        return $query->where('privacy','public');
+    }
+    public function scopePrivate(Builder $query) {
+        return $query->where('privacy','private');
+    }
+    public function scopeFollowersOnly(Builder $query) {
+        return $query->where('privacy','followers_only');
+    }
+
+    protected static function booted(){
+        static::addGlobalScope(new VisibilityScope());
     }
 }

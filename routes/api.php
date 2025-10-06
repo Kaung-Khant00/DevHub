@@ -72,6 +72,11 @@ Route::middleware('auth:sanctum')->group(function () {
                 Route::get('/', [AdminReportController::class, 'getReports']);
                 Route::get('/detail/{id}', [AdminReportController::class, 'getReportDetail']);
                 Route::post('/status',[AdminReportController::class, 'responseToReporter']);
+                Route::prefix("/remove")->group(function(){
+                    Route::prefix('/temporary')->group(function(){
+                        Route::delete('/post/{id}',[AdminReportController::class,'togglePostTemporarily']);
+                    });
+                });
             });
     });
 

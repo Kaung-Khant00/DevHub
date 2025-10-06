@@ -16,7 +16,7 @@ class Report extends Model
         return $this->belongsTo(User::class, 'reporter_id');
     }
     public function reportable (){
-        return $this->morphTo();
+        return $this->morphTo()->withoutGlobalScopes();
     }
     public function serializeDate(DateTimeInterface $date){
         return $date->format('d/m/Y h:i A');

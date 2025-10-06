@@ -21,6 +21,8 @@ return new class extends Migration
             $table->mediumText('code')->nullable();
             $table->string('code_lang')->nullable()->default('not specified');
             $table->text('tags')->nullable();
+            $table->enum('privacy', ['public', 'private','followers_only'])->default('public');
+            $table->boolean('visibility')->default(true);
             $table->timestamps();
         });
     }

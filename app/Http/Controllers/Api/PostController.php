@@ -22,7 +22,7 @@ class PostController extends Controller
         $sortBy = $request->query('sortBy');
         $perPage = $request->query('perPage');
         $currentPage = $request->query('currentPage');
-        $posts = Post::with(['user', 'file'])
+        $posts = Post::public()->with(['user', 'file'])
             ->withCount('likedUsers')
             ->withExists([
                 'likedUsers as liked' => function ($q) use ($request) {
@@ -131,6 +131,9 @@ class PostController extends Controller
                 $q->where('follower_id', $request->user()->id);
             }
         ])->find($id);
+        if($post->user_id !== $request->user()->id){
+            $post = $post->public();
+        }
         if (!$post) {
             return response()->json(['message' => 'Post not found.'], 404);
         }
@@ -147,7 +150,7 @@ class PostController extends Controller
   */
     public function getDetailPostById(Request $request, $id)
     {
-        $post = Post::where('id', $id)
+        $post = Post::public()->where('id', $id)
             ->with(['user', 'file'])
             ->withCount('likedUsers', 'comments')
             ->withExists([
@@ -302,7 +305,7 @@ class PostController extends Controller
     public function commentPost(Request $request)
     {
         $this->validateComment($request);
-        $post = Post::find($request->post_id);
+        $post = Post::whereNotIn('privacy', ['private'])->find($request->post_id);
         $comment = $post->comments()->create([
             'post_id' => $request->post_id,
             'comment' => $request->comment,

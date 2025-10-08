@@ -82,6 +82,9 @@ Route::middleware('auth:sanctum')->group(function () {
                     });
                 });
             });
+              Route::prefix('users')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\SuperAdmin\UserController::class, 'getUsers']);
+        });
     });
 
     /*
@@ -89,12 +92,14 @@ Route::middleware('auth:sanctum')->group(function () {
     | Super admin area (SUPER_ADMIN)
     |--------------------------------------------------------------------------
     */
-    Route::prefix('super_admin')
-        ->middleware('role:SUPER_ADMIN')
-        ->group(function () {
-            Route::prefix('users')->group(function () {
-                Route::get('/', [\App\Http\Controllers\Api\SuperAdmin\UserController::class, 'getUsers']);
-            });
+    Route::group(['prefix'=>'super_admin','middleware'=>'role:SUPER_ADMIN'],function () {
+
+        Route::prefix('admins')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\SuperAdmin\AdminController::class, 'getAdmins']);
+            Route::post('/create', [\App\Http\Controllers\Api\SuperAdmin\AdminController::class, 'createAdmin']);
+            Route::get('/{id}', [\App\Http\Controllers\Api\SuperAdmin\AdminController::class, 'getAdminById']);
+            Route::post('edit/{id}', [\App\Http\Controllers\Api\SuperAdmin\AdminController::class, 'updateAdminById']);
+        });
     });
 
     /*

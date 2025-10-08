@@ -10,7 +10,7 @@ class AdminController extends Controller
     public function getAdminUser(Request $request){
         $admin = $request->user();
         return response()->json([
-            'admin' => $admin,
+            'admin' => $admin->load('adminProfile'),
         ]);
     }
 }

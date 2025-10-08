@@ -11,6 +11,7 @@ use App\Models\Question;
 use App\Models\GroupPost;
 use App\Models\JobProposal;
 use Illuminate\Support\Str;
+use App\Models\adminProfile;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\GroupCreationRequest;
 use Illuminate\Notifications\Notifiable;
@@ -29,7 +30,7 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
-    protected $fillable = ['main_career', 'name', 'email', 'password', 'oauth_provider', 'oauth_id', 'role', 'profile_url', 'phone', 'bio'];
+    protected $fillable = ['main_career', 'name', 'email', 'password', 'oauth_provider', 'oauth_id', 'role', 'profile_url', 'phone', 'bio','age','gender'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -70,6 +71,10 @@ class User extends Authenticatable
     public function clientProfile()
     {
         return $this->hasOne(ClientProfile::class, 'user_id', 'id');
+    }
+    public function adminProfile()
+    {
+        return $this->hasOne(adminProfile::class, 'user_id', 'id');
     }
     public function posts(): HasMany
     {

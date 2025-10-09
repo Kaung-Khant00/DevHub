@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('question_views', function (Blueprint $table) {
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('question_id')->constrained('questions');
+            $table->timestamp('created_at')->useCurrent();
         });
     }
 

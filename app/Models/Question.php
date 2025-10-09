@@ -9,8 +9,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Question extends Model
 {
-    protected $fillable = ['title', 'body', 'user_id','is_solved','best_answer_id','code','image'];
+    protected $fillable = ['title', 'body', 'user_id','is_solved','code_snippet','image_path','is_anonymous','tags'];
 
+    protected $casts = [
+        'is_solved' => 'boolean',
+        'is_anonymous' => 'boolean',
+        'tags' => 'array'
+    ];
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

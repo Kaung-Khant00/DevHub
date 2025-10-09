@@ -17,9 +17,11 @@ return new class extends Migration
             $table->string('title');
             $table->text('body');
             $table->boolean('is_solved')->default(false);
-            $table->integer('best_answer_id')->nullable();
-            $table->mediumText('code')->nullable();
-            $table->string('image')->nullable();
+            $table->mediumText('code_snippet')->nullable();
+            $table->string('image_path')->nullable();
+            $table->unsignedInteger('views')->default(0);
+            $table->json('tags')->nullable();
+            $table->boolean('is_anonymous')->default(false);
             $table->timestamps();
         });
     }

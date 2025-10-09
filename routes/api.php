@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Auth\GitHubController;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Api\User\ReportController;
+use App\Http\Controllers\Api\User\QuestionController;
 use App\Http\Controllers\Api\User\GroupPostController;
 use App\Http\Controllers\Api\Admin\AdminReportController;
 use App\Http\Controllers\Api\User\NotificationController;
@@ -220,7 +221,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('reports')->group(function () {
         Route::post('/post', [ReportController::class, 'reportPost']);
     });
-
+    Route::prefix('questions')->group(function(){
+        Route::post('/ask',[QuestionController::class,'askQuestion']);
+    });
     /*
     |--------------------------------------------------------------------------
     | Misc / misc admin helpers

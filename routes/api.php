@@ -223,6 +223,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     Route::prefix('questions')->group(function(){
         Route::post('/ask',[QuestionController::class,'askQuestion']);
+        Route::get('/',[QuestionController::class,'getQuestions']);
     });
     /*
     |--------------------------------------------------------------------------

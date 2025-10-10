@@ -46,4 +46,23 @@ class QuestionController extends Controller
             'tags' => $request->tags
         ];
     }
+    public function getQuestions(Request $request){
+        $searchQuery = $request->query('searchQuery');
+        $page = $request->query('page',1);
+        $per_page = $request->query('perPage',4);
+        $sortBy = $request->query('sortBy');
+        $status = $request->query('status');
+        $questions = Question::when($searchQuery,function ($query) use ($searchQuery){
+            return $query->whereAny(['title','body','code_snippet'], 'LIKE', '%' . $searchQuery . '%');
+        })
+        ->when($status,function ($query) use ($status){
+            return $query->where('is_solved', $status);
+        })
+        ->when('sortBy',function ($query) use ($sortBy) { $sort = explode(',', $sortBy); $query->orderBy($sort[0], $sort[1]);})
+        ->with('user')->latest()
+        ->paginate($per_page, ['*'], 'page', $page);
+        return response()->json([
+            'questions' => $questions
+        ]);
+    }
 }

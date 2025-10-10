@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('answer_likes', function (Blueprint $table) {
-            $table->foreignId('answer_id')->constrained('answers');
+        Schema::create('question_message_likes', function (Blueprint $table) {
+            $table->foreignId('question_message_id')->constrained('answers');
             $table->foreignId('user_id')->constrained('users');
             $table->timestamp('created_at')->useCurrent();
         });
@@ -23,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('answer_likes');
+        Schema::dropIfExists('question_message_likes');
     }
 };

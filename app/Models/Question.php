@@ -5,7 +5,9 @@ namespace App\Models;
 use App\Models\User;
 use App\Models\Answer;
 use DateTimeInterface;
+use App\Models\QuestionMessage;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Question extends Model
@@ -21,12 +23,10 @@ class Question extends Model
     {
         return $this->belongsTo(User::class);
     }
-
-    public function bestAnswer(): BelongsTo
+    public function questionMessages(): HasMany
     {
-        return $this->belongsTo(Answer::class, 'best_answer_id');
+        return $this->hasMany(QuestionMessage::class);
     }
-
     public function serializeDate(DateTimeInterface $date){
         return $date->format('d M Y');
     }

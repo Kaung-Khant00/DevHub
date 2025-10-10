@@ -65,4 +65,30 @@ class QuestionController extends Controller
             'questions' => $questions
         ]);
     }
+    public function getQuestionDetailById(Request $request, $id){
+        $question = Question::when(Question::where('id', $id)->value('is_anonymous') === false,function($query){
+            return $query->with('user');
+        })->find($id);
+        return response()->json([
+            'question' => $question
+        ]);
+    }
+    public function commentQuestion(Request $request,$id){
+        $request->validate([
+            'body' => 'required|string|max:2500',
+            'type' => 'required|in:comment,solution'
+        ]);
+        $question = Question::findOrFail($id);
+        $comment = $question->questionMessages()->create([
+            'question_id' => $id,
+            'user_id' => $request->user()->id,
+            'body' => $request->body,
+            'type' => $request->type
+        ]);
+        $comment->load('user');
+        return response()->json([
+            'message' => 'Commented successfully.',
+            'comment' => $comment,
+        ]);
+    }
 }

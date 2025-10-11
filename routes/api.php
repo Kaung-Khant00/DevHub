@@ -226,6 +226,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/',[QuestionController::class,'getQuestions']);
         Route::get('/{id}',[QuestionController::class,"getQuestionDetailById"]);
         Route::post('/{id}/answer',[QUestionController::class,"commentQuestion"]);
+        Route::get('/{id}/messages',[QUestionController::class,"getQuestionMessages"]);
     });
     /*
     |--------------------------------------------------------------------------

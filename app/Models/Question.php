@@ -25,7 +25,7 @@ class Question extends Model
     }
     public function questionMessages(): HasMany
     {
-        return $this->hasMany(QuestionMessage::class);
+        return $this->hasMany(QuestionMessage::class, 'question_id', 'id');
     }
     public function serializeDate(DateTimeInterface $date){
         return $date->format('d M Y');

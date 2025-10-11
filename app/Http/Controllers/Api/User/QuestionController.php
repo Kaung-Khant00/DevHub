@@ -66,11 +66,13 @@ class QuestionController extends Controller
         ]);
     }
     public function getQuestionDetailById(Request $request, $id){
-        $question = Question::when(Question::where('id', $id)->value('is_anonymous') === false,function($query){
+        /*  fetching question detail */
+        $question = Question::when(!Question::where('id', $id)->value('is_anonymous'),function($query){
             return $query->with('user');
-        })->find($id);
+        })->with('questionMessages')->find($id);
+
         return response()->json([
-            'question' => $question
+            'question' => $question,
         ]);
     }
     public function commentQuestion(Request $request,$id){
@@ -79,16 +81,32 @@ class QuestionController extends Controller
             'type' => 'required|in:comment,solution'
         ]);
         $question = Question::findOrFail($id);
-        $comment = $question->questionMessages()->create([
+        $message = $question->questionMessages()->create([
             'question_id' => $id,
             'user_id' => $request->user()->id,
             'body' => $request->body,
             'type' => $request->type
         ]);
-        $comment->load('user');
+        $message->load('user');
         return response()->json([
             'message' => 'Commented successfully.',
-            'comment' => $comment,
+            'data' => $message,
+        ]);
+    }
+    public function getQuestionMessages(Request $request,$id){
+        $question = Question::findOrFail($id);
+        $page = $request->query('page',1);
+        $perPage = $request->query('perPage',10);
+        $sortBy = $request->query('sortBy','created_at,desc');
+        [$sorting, $order] = explode(',', $sortBy);
+        $type = $request->query('type');
+        logger($type);
+        $messages = $question->questionMessages()->when($type,function($query) use ($type) {
+            return $query->where('type', $type);
+        })->with('user')->orderBy($sorting, $order)->paginate($perPage, ['*'], 'page', $page);
+        return response()->json([
+            'messages' => $messages,
+            'type' => $type ?? 'all'
         ]);
     }
 }

@@ -30,4 +30,12 @@ class Question extends Model
     public function serializeDate(DateTimeInterface $date){
         return $date->format('d M Y');
     }
+    public function isOwner($userId)
+{
+    return $this->user_id === $userId;
+}
+protected $appends = ['image_url'];
+public function getImageUrlAttribute(){
+    return $this->image_path ? asset('storage/' . $this->image_path) : null;
+}
 }

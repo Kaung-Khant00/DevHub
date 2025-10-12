@@ -59,8 +59,12 @@ class QuestionController extends Controller
         ->when($status,function ($query) use ($status){
             return $query->where('is_solved', $status);
         })
+        ->withExists([
+            'likedUsers as is_liked' => function ($q) use ($request) {
+                $q->where('user_id', $request->user()->id);
+        }])
         ->when('sortBy',function ($query) use ($sortBy) { $sort = explode(',', $sortBy); $query->orderBy($sort[0], $sort[1]);})
-        ->with('user')->withCount('questionMessages')->latest()
+        ->withCount(['questionMessages','likedUsers'])->latest()
         ->paginate($per_page, ['*'], 'page', $page);
         return response()->json([
             'questions' => $questions
@@ -137,6 +141,7 @@ class QuestionController extends Controller
     public function toggleQuestionLike(Request $request,$id){
         $question = Question::findOrFail($id);
         $is_liked = $question->toggleLike($request->user()->id);
+        $question = $question->loadCount(['likedUsers','questionMessages']);
         return response()->json([
             'message' => 'Question liked successfully',
             'question' => $question,

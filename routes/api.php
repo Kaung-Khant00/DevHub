@@ -229,6 +229,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}/messages',[QuestionController::class,"getQuestionMessages"]);
         Route::post('/{id}/edit',[QuestionController::class,"editQuestion"]);
         Route::post('/{id}/message/edit',[QuestionController::class,"updateComment"]);
+        Route::post('/{id}/question/like',[QuestionController::class,'toggleQuestionLike']);
     });
     /*
     |--------------------------------------------------------------------------

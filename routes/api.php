@@ -228,6 +228,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}/answer',[QuestionController::class,"commentQuestion"]);
         Route::get('/{id}/messages',[QuestionController::class,"getQuestionMessages"]);
         Route::post('/{id}/edit',[QuestionController::class,"editQuestion"]);
+        Route::post('/{id}/message/edit',[QuestionController::class,"updateComment"]);
     });
     /*
     |--------------------------------------------------------------------------

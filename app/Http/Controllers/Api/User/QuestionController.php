@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\User;
 
 use App\Models\Question;
 use Illuminate\Http\Request;
+use App\Models\QuestionMessage;
 use Illuminate\Validation\Rule;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
@@ -69,7 +70,7 @@ class QuestionController extends Controller
         /*  fetching question detail */
         $question = Question::when(!Question::where('id', $id)->value('is_anonymous'),function($query){
             return $query->with('user');
-        })->with('questionMessages')->findOrFail($id);
+        })->findOrFail($id);
         $question->is_owner = $question->isOwner($request->user()->id);
         return response()->json([
             'question' => $question,
@@ -130,6 +131,29 @@ class QuestionController extends Controller
         return response()->json([
             'message' => 'Question updated successfully',
             'question' => $question
+        ]);
+    }
+
+    public function toggleQuestionLike(Request $request,$id){
+        $question = Question::findOrFail($id);
+        $is_liked = $question->toggleLike($request->user()->id);
+        return response()->json([
+            'message' => 'Question liked successfully',
+            'question' => $question,
+            'is_liked' => $is_liked
+        ]);
+    }
+    public function updateComment(Request $request,$id){
+        $request->validate([
+            'body' => 'required|string|max:2500',
+        ]);
+        $message = QuestionMessage::where('user_id',$request->user()->id)->findOrFail($id);
+        $message->update([
+            'body' => $request->body,
+        ]);
+        return response()->json([
+            'message' => 'Comment updated successfully.',
+            'data' => $message->load('user'),
         ]);
     }
 }

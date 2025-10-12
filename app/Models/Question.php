@@ -9,6 +9,7 @@ use App\Models\QuestionMessage;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Question extends Model
 {
@@ -26,6 +27,18 @@ class Question extends Model
     public function questionMessages(): HasMany
     {
         return $this->hasMany(QuestionMessage::class, 'question_id', 'id');
+    }
+    public function likedUsers(): BelongsToMany{
+        return $this->belongsToMany(User::class, 'question_likes', 'question_id', 'user_id');
+    }
+    public function toggleLike($userId){
+        if($this->likedUsers()->where('user_id',$userId)->exists()){
+            $this->likedUsers()->detach($userId);
+            return false;
+        }else{
+            $this->likedUsers()->syncWithoutDetaching([$userId]);
+            return true;
+        }
     }
     public function serializeDate(DateTimeInterface $date){
         return $date->format('d M Y');

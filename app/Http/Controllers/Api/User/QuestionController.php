@@ -212,5 +212,16 @@ class QuestionController extends Controller
             'is_liked' => $is_liked
         ]);
     }
+    public function changeMessageType(Request $request,$id){
+        $message = QuestionMessage::findOrFail($id);
+        $newType = $message->type == 'comment' ? 'solution' : 'comment';
+        $message->update([
+            'type' => $newType
+        ]);
+        return response()->json([
+            'message' => 'Message type changed successfully',
+            'data' => $message
+        ]);
+    }
 
 }

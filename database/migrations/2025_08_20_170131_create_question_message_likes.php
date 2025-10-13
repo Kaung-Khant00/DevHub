@@ -12,8 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('question_message_likes', function (Blueprint $table) {
-            $table->foreignId('question_message_id')->constrained('answers');
+            $table->foreignId('question_message_id')->constrained('question_messages');
             $table->foreignId('user_id')->constrained('users');
+            $table->boolean('feedback');
             $table->timestamp('created_at')->useCurrent();
         });
     }

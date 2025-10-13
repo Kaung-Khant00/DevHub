@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class QuestionMessageLike extends Model
 {
-    protected $fillable = ['user_id','question_message_id'];
+    protected $fillable = ['user_id','question_message_id','feedback'];
+
 
 }

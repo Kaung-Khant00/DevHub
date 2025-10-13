@@ -108,7 +108,25 @@ class QuestionController extends Controller
         logger($type);
         $messages = $question->questionMessages()->when($type,function($query) use ($type) {
             return $query->where('type', $type);
-        })->with('user')->orderBy($sorting, $order)->paginate($perPage, ['*'], 'page', $page);
+        })
+        ->withCount([
+            'likedUsers as likes' => function ($q) use ($request){
+                $q->where('feedback', 1);
+            },
+            'likedUsers as dislikes' => function ($q) use ($request){
+                $q->where('feedback', 0);
+            }
+        ])
+            ->withExists([
+        // returns liked_by_user = true if current user gave feedback = 1
+        'likedUsers as liked_by_user' => function ($q) use ($request) {
+            $q->where('user_id', $request->user()->id)->where('feedback', 1);
+        },
+        // returns disliked_by_user = true if current user gave feedback = 0
+        'likedUsers as disliked_by_user' => function ($q) use ($request) {
+            $q->where('user_id', $request->user()->id)->where('feedback', 0);
+        },
+    ])->with('user')->orderBy($sorting, $order)->paginate($perPage, ['*'], 'page', $page);
         return response()->json([
             'messages' => $messages,
             'type' => $type ?? 'all'
@@ -161,4 +179,38 @@ class QuestionController extends Controller
             'data' => $message->load('user'),
         ]);
     }
+    public function toggleMessageLike(Request $request,$id){
+        $message = QuestionMessage::findOrFail($id);
+        $is_liked = $message->toggleLike($request->user()->id);
+        logger("USER LIKED THE mESSAGE");
+        return response()->json([
+            'message' => 'Message liked successfully',
+            'data' => $message->loadCount([
+            'likedUsers as likes' => function ($q) use ($request){
+                $q->where('feedback', 1);
+            },
+            'likedUsers as dislikes' => function ($q) use ($request){
+                $q->where('feedback', 0);
+            }
+        ])->load("user"),
+            'is_liked' => $is_liked
+        ]);
+    }
+    public function toggleMessageDislike(Request $request,$id){
+        $message = QuestionMessage::findOrFail($id);
+        $is_liked = $message->toggleDislike($request->user()->id);
+        return response()->json([
+            'message' => 'Message liked successfully',
+            'data' => $message->loadCount([
+            'likedUsers as likes' => function ($q) use ($request){
+                $q->where('feedback', 1);
+            },
+            'likedUsers as dislikes' => function ($q) use ($request){
+                $q->where('feedback', 0);
+            }
+        ])->load("user"),
+            'is_liked' => $is_liked
+        ]);
+    }
+
 }

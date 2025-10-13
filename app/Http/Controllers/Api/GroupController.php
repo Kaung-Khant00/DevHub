@@ -55,16 +55,23 @@ class GroupController extends Controller
   */
     public function getGroups(Request $request)
     {
+        $sortBy = $request->query('sortBy');
+        $searchQuery = $request->query('searchQuery');
         $groups = Group::withExists([
             'members as joined' => function ($q) use ($request) {
                 $q->where('user_id', $request->user()->id);
             },
         ])
-            ->withCount('members')
-            ->when($request->search, function ($query) use ($request) {
+            ->withCount(['members','posts'])
+            ->when($sortBy, function ($query, $sortBy) {
+                $sort = explode(',', $sortBy);
+                $query->orderBy($sort[0], $sort[1]);
+            })
+            ->when($searchQuery, function ($query) use ($request) {
                 $query->whereAny(['name', 'description'], 'like', '%' . $request->search . '%');
             })
             ->get();
+            logger("GROUPS");
         return response()->json([
             'groups' => $groups,
         ]);

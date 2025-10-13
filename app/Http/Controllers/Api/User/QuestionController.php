@@ -223,5 +223,12 @@ class QuestionController extends Controller
             'data' => $message
         ]);
     }
-
+    public function deleteMessage(Request $request,$id){
+        $message = QuestionMessage::where('user_id',$request->user()->id)->findOrFail($id);
+        $message->delete();
+        return response()->json([
+            'message' => 'message deleted successfully',
+            'data' => $message
+        ]);
+    }
 }

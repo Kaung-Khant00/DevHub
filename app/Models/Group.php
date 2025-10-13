@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\Post;
 use App\Models\User;
 use DateTimeInterface;
 use App\Models\GroupRule;
@@ -31,7 +30,7 @@ class Group extends Model
         return $this->hasMany(GroupRule::class);
     }
     public function posts(): HasMany{
-        return $this->hasMany(Post::class);
+        return $this->hasMany(GroupPost::class);
     }
 
     protected $appends = ['image_url'];

@@ -118,7 +118,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('/developer/edit/{id}',   [ProfileController::class, 'editProfile']);
         Route::post('/developer/image/edit',  [ProfileController::class, 'uploadProfileImage']);
-        Route::post('/posts/search',          [ProfileController::class, 'searchPosts']);
+        Route::get('/posts/search',          [ProfileController::class, 'searchPosts']);
         Route::delete('/developer/image',     [ProfileController::class, 'deleteProfileImage']);
     });
 
@@ -141,7 +141,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/download',    [PostController::class, 'download']);
 
         // PUT/PATCH
-        Route::match(['put','patch'],'/{id}', [PostController::class, 'updatePost']);
+        Route::post('/{id}', [PostController::class, 'updatePost']);
         Route::match(['put','patch'],'/{id}/comment', [PostController::class, 'updateComment']);
 
         // DELETE
@@ -234,6 +234,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}/message/dislike',[QuestionController::class,'toggleMessageDislike']);
         Route::match(['put','patch'],'/{id}/message/changeType',[QuestionController::class,'changeMessageType']);
         Route::delete('/{id}/message',[QuestionController::class,'deleteMessage']);
+        Route::delete('/{id}/question',[QuestionController::class,'deleteQuestion']);
     });
     /*
     |--------------------------------------------------------------------------

@@ -3,9 +3,13 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Models\Question;
+use App\Models\Notification;
+use App\Models\QuestionLike;
 use Illuminate\Http\Request;
 use App\Models\QuestionMessage;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
+use App\Models\QuestionMessageLike;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 
@@ -86,12 +90,24 @@ class QuestionController extends Controller
             'type' => 'required|in:comment,solution'
         ]);
         $question = Question::findOrFail($id);
-        $message = $question->questionMessages()->create([
+        if($request->type == 'solution')
+            {$message = $question->questionMessages()->create([
             'question_id' => $id,
             'user_id' => $request->user()->id,
             'body' => $request->body,
             'type' => $request->type
         ]);
+            Notification::create([
+                'user_id' => $question->user_id,
+                'type' => 'SOLUTION',
+                'title' => 'New Solution',
+                'message' => 'You have a new solution',
+                'data' => [
+                    'question_id' => $id,
+                    'question_message_id' => $message->id,]
+                ]);
+        }
+
         $message->load('user');
         return response()->json([
             'message' => 'Commented successfully.',
@@ -229,6 +245,27 @@ class QuestionController extends Controller
         return response()->json([
             'message' => 'message deleted successfully',
             'data' => $message
+        ]);
+    }
+    public function deleteQuestion(Request $request,$id){
+        $question = Question::where('user_id',$request->user()->id)->findOrFail($id);
+        if(!empty($question->image_path) && Storage::disk('public')->exists($question->image_path)){
+            Storage::disk('public')->delete($question->image_path);
+        }
+            DB::transaction(function () use ($question) {
+                DB::table('question_messages')->where('question_id', $question->id)->chunkById(200, function ($messages) {
+                    $ids = $messages->pluck('id')->all();
+                    if (!empty($ids)) {
+                        DB::table('question_message_likes')->whereIn('question_message_id', $ids)->delete();
+                    }
+                });
+                DB::table('question_messages')->where('question_id', 10)->delete();
+                DB::table('question_likes')->where('question_id', 10)->delete();
+                DB::table('questions')->where('id', 10)->delete();
+            });
+        return response()->json([
+            'message' => 'Question deleted successfully',
+            'data' => $question
         ]);
     }
 }

@@ -24,6 +24,7 @@ class GoogleController extends Controller
                 'name' => $googleUser->getName() ?? $googleUser->getNickname(),
                 'oauth_id' => $googleUser->getId(),
                 'oauth_provider' => 'google',
+                'role' => 'developer'
             ],
         );
         if ($user->profile_url == null) {

@@ -23,6 +23,7 @@ class GitHubController extends Controller
                 'name'=>$githubUser->getName() ?? $githubUser->getNickname(),
                 'oauth_id'=>$githubUser->getId(),
                 "oauth_provider" => "github",
+                'role' => 'developer'
             ]
             );
             if($user->profile_url == null){

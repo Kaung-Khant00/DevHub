@@ -32,11 +32,12 @@ class GroupController extends Controller
         return $request->validate([
             'name' => 'required|max:40|string|unique:groups,name',
             'description' => 'nullable|max:255|string',
-            'image' => 'nullable|image|mimes:jpg,jpeg,webp,png|max:2048',
-            'tags' => 'nullable|array',
-            'tags.*' => 'nullable|string|max:40',
-            'rules' => 'nullable|string|max:1000',
-            'rules.*' => 'nullable|string|max:200',
+            'image' => 'required|image|mimes:jpg,jpeg,webp,png|max:2048',
+            'tags' => 'nullable|array|max:3',
+            'tags.*' => 'nullable|string|max:25',
+        ],[
+            'tags.max' => 'You can only add up to 3 tags',
+            'tags.*.max' => 'Each tag can have a maximum of 40 characters',
         ]);
     }
     public function getGroupCreationRequestData(Request $request)
@@ -63,15 +64,14 @@ class GroupController extends Controller
             },
         ])
             ->withCount(['members','posts'])
-            ->when($sortBy, function ($query, $sortBy) {
+            ->when($sortBy, function ($query) use ($sortBy) {
                 $sort = explode(',', $sortBy);
                 $query->orderBy($sort[0], $sort[1]);
             })
-            ->when($searchQuery, function ($query) use ($request) {
-                $query->whereAny(['name', 'description'], 'like', '%' . $request->search . '%');
+            ->when($searchQuery, function ($query) use ($searchQuery) {
+                $query->whereAny(['name', 'description'], 'like', '%' . $searchQuery . '%');
             })
             ->get();
-            logger("GROUPS");
         return response()->json([
             'groups' => $groups,
         ]);

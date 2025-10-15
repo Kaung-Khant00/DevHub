@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\Api\User;
 
-use App\Http\Controllers\Controller;
 use App\Models\Post;
 use Illuminate\Http\Request;
+use App\Models\QuestionMessage;
+use App\Http\Controllers\Controller;
 
 class NotificationController extends Controller
 {
@@ -29,7 +30,7 @@ class NotificationController extends Controller
         $notification = $user->notifications()->where('id', $id)->first();
         if($notification->user_id === $request->user()->id){
             $post = $this->postFromNotification($notification);
-            logger($post);
+            $this->questionMessageFromNotification($notification);
             if($post){
                 $notification->post = $post;
             }
@@ -44,6 +45,14 @@ class NotificationController extends Controller
             return Post::withoutGlobalScopes()->with('user')->find($notification->data['post_id']);
         }
         return null;
+    }
+    private function questionMessageFromNotification($notification){
+        if($notification->type === 'SOLUTION' && isset($notification->data['question_message_id'])){
+            $message = QuestionMessage::find($notification->data['question_message_id']);
+            if($message){
+                $notification->question_message = $message;
+            }
+        }
     }
     public function updateNotificationReadStatus(Request $request, $id){
         $request->user()->notifications()->where('id', $id)->update([

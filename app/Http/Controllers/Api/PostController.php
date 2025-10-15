@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
+use id;
 use App\Models\File;
 use App\Models\Post;
 use App\Models\PostComment;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
-use id;
 
 class PostController extends Controller
 {
@@ -92,7 +93,7 @@ class PostController extends Controller
                 'content' => 'required|string|max:10000',
                 'image' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:5120',
                 'file' => 'nullable|file|max:10240',
-                'code' => 'nullable|string',
+                'code' => 'nullable|string|max:5000',
                 'code_lang' => 'nullable|string',
             ],
             [
@@ -183,20 +184,19 @@ class PostController extends Controller
         if ($post->user_id !== $request->user()->id) {
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
-        $this->validateUpdatingPost($request);
-        $isDeleteImage = $request->input('isDeleteImage', false);
-        $isDeleteFile = $request->input('isDeleteFile', false);
+        $this->validateUpdatingPost($request,true);
         $postData = $this->getPostData($request);
         /*
 |-----------------------------------
 |  File And Image deleting when the user wants to delete not update
 */
-        if ($isDeleteImage === true) {
+        if ($request->boolean('isDeleteImage')) {
+            logger('delete image');
             $this->deleteImage($post);
 
             $postData['image'] = null;
         }
-        if ($isDeleteFile === true) {
+        if ($request->boolean('isDeleteFile')) {
             $this->deleteFile($post);
 
             $postData['file'] = null;
@@ -217,7 +217,6 @@ class PostController extends Controller
             $filePath = $file->store('files', 'public');
             $postData['file'] = $filePath;
         }
-
         $post->update($postData);
         $post->load('user');
         return response()->json([
@@ -225,12 +224,12 @@ class PostController extends Controller
             'post' => $post,
         ]);
     }
-    private function validateUpdatingPost(Request $request)
+    private function validateUpdatingPost(Request $request,$isUpdating = false)
     {
         $request->validate(
             [
                 'title' => 'nullable|string|max:255',
-                'content' => 'required|string|max:10000',
+                'content' => [Rule::requiredIf($isUpdating),'string','max:10000'],
                 'image' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:5120',
                 'file' => 'nullable|file|mimes:html,css,scss,sass,js,ts,jsx,tsx,vue,php,py,java,c,cpp,h,cs,go,rb,sh,json,xml,yml,yaml,sql,csv,env,md,pdf,doc,docx,xls,xlsx,ppt,pptx,zip,rar,7z,tar,gz|max:10240',
                 'code' => 'nullable|string',

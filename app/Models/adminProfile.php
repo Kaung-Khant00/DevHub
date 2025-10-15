@@ -16,6 +16,6 @@ class adminProfile extends Model
 
     protected function getOfficeImageUrlAttribute()
     {
-        return $this->office_image ? asset('storage/'.$this->office_image) : null;
+        return $this->office_image ? asset('storage/'.$this->office_image) : asset('defaultImages/profileImage.jpg');
     }
 }

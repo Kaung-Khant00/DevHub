@@ -55,6 +55,8 @@ class GroupPostController extends Controller
                 'file' => 'nullable|file|max:10240',
                 'code' => 'nullable|string',
                 'code_lang' => 'nullable|string',
+                'tags' => 'nullable|array|max:3',
+                'tags.*' => 'nullable|string|max:25',
             ],
             [
                 'image.max' => 'The image can not be greater than 5 MB.',
@@ -95,6 +97,7 @@ class GroupPostController extends Controller
                 $q->where('user_id', $request->user()->id);
             }
         ])
+        ->latest()
         ->paginate($per_page, ['*'], 'page', $page);
         return response()->json([
             'posts' => $posts,

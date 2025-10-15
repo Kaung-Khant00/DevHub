@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Models\DeveloperProfile;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -25,7 +26,10 @@ class GitHubController extends Controller
                 "oauth_provider" => "github",
                 'role' => 'developer'
             ]
-            );
+        );
+        DeveloperProfile::updateOrCreate(
+            ['user_id'=>$user->id]
+        );
             if($user->profile_url == null){
                 $user->profile_url = $githubUser->getAvatar();
                 $user->save();

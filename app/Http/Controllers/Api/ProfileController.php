@@ -49,7 +49,7 @@ class ProfileController extends Controller
     {
         $this->validateProfileData($request);
         $user = $request->user();
-        $user->update($request->only(['name', 'phone', 'bio', 'main_career']));
+        $user->update($request->only(['name', 'phone', 'bio', 'main_career','gender']));
         $user->developerProfile()->update($request->only(['skills', 'address', 'github_url', 'linkedin_url', 'portfolio_url']));
         return response()->json(['message' => 'Success']);
     }
@@ -142,7 +142,7 @@ class ProfileController extends Controller
         $user->save();
         return response()->json([
             'message' => 'Profile Image deleted successfully.',
-            'profile' => $user->developerProfile,
+            'user' => $user,
         ]);
     }
     /*

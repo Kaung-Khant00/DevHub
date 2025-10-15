@@ -235,6 +235,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::match(['put','patch'],'/{id}/message/changeType',[QuestionController::class,'changeMessageType']);
         Route::delete('/{id}/message',[QuestionController::class,'deleteMessage']);
         Route::delete('/{id}/question',[QuestionController::class,'deleteQuestion']);
+        Route::post('/{id}/solved',[QuestionController::class,'toggleSolvedQuestion']);
     });
     /*
     |--------------------------------------------------------------------------

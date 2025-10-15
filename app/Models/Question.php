@@ -47,6 +47,10 @@ class Question extends Model
 {
     return $this->user_id === $userId;
 }
+public function toggleSolved(){
+    $this->is_solved = !$this->is_solved;
+    $this->save();
+}
 protected $appends = ['image_url'];
 public function getImageUrlAttribute(){
     return $this->image_path ? asset('storage/' . $this->image_path) : null;

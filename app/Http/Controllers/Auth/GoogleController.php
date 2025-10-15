@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Models\User;
+use App\Models\DeveloperProfile;
 use App\Http\Controllers\Controller;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -26,6 +27,9 @@ class GoogleController extends Controller
                 'oauth_provider' => 'google',
                 'role' => 'developer'
             ],
+        );
+        DeveloperProfile::updateOrCreate(
+            ['user_id'=>$user->id]
         );
         if ($user->profile_url == null) {
             $user->profile_url = $googleUser->getAvatar();

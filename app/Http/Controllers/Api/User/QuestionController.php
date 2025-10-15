@@ -37,7 +37,7 @@ class QuestionController extends Controller
             'image'=>'nullable|max:3072|image|mimes:png,jpg,jpeg,webp', // max 3MB
             'is_anonymous'=>'nullable|boolean',
             'tags' => 'nullable|array|max:3',
-            'tags.*' => 'nullable|string|max:40',
+            'tags.*' => 'nullable|string|max:25',
         ],[
             'tags.max' => 'You can only add up to 3 tags',
         ]);
@@ -265,6 +265,14 @@ class QuestionController extends Controller
             });
         return response()->json([
             'message' => 'Question deleted successfully',
+            'data' => $question
+        ]);
+    }
+    public function toggleSolvedQuestion(Request $request,$id){
+        $question = Question::where('user_id',$request->user()->id)->findOrFail($id);
+        $question->toggleSolved();
+        return response()->json([
+            'message' => 'Question solved successfully',
             'data' => $question
         ]);
     }

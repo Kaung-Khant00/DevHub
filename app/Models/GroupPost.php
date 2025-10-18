@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\File;
 use App\Models\User;
 use App\Models\Group;
 use App\Models\GroupPostComment;
@@ -42,7 +41,7 @@ class GroupPost extends Model
     }
 
     public function file()  : BelongsTo{
-        return $this->belongsTo(File::class,'file_id');
+        return $this->belongsTo(File::class,'file_id','id');
     }
     public function likedUsers(): BelongsToMany{
         return $this->belongsToMany(User::class, 'group_post_likes', 'post_id', 'user_id');

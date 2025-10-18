@@ -4,14 +4,17 @@ namespace App\Http\Controllers\Api\User;
 
 use App\Models\File;
 use App\Models\Group;
+use App\Models\GroupFile;
 use App\Models\GroupPost;
 use Illuminate\Http\Request;
 use App\Models\GroupPostComment;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
 
 class GroupPostController extends Controller
 {
-    public function createGroupPost(Request $request,$id){
+    public function createGroupPost(Request $request, $id)
+    {
         $group = Group::findOrFail($id);
         logger($request->all());
         $this->validateGroupPost($request);
@@ -45,16 +48,17 @@ class GroupPostController extends Controller
             201,
         );
     }
-    protected function validateGroupPost(Request $request){
+    protected function validateGroupPost(Request $request)
+    {
         $request->validate(
             [
-                'group_id'=> 'required|exists:groups,id',
+                'group_id' => 'required|exists:groups,id',
                 'title' => 'nullable|string|max:255',
                 'content' => 'required|string|max:10000',
                 'image' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:5120',
                 'file' => 'nullable|file|max:10240',
                 'code' => 'nullable|string',
-                'code_lang' => 'nullable|string',
+                'codeLang' => 'nullable|string',
                 'tags' => 'nullable|array|max:3',
                 'tags.*' => 'nullable|string|max:25',
             ],
@@ -65,10 +69,10 @@ class GroupPostController extends Controller
         );
     }
 
-        private function getGroupPostData(Request $request)
+    private function getGroupPostData(Request $request)
     {
         return [
-            'group_id'=> $request->input('group_id'),
+            'group_id' => $request->input('group_id'),
             'title' => $request->input('title'),
             'content' => $request->input('content'),
             'code' => $request->input('code'),
@@ -76,7 +80,7 @@ class GroupPostController extends Controller
             'tags' => $request->input('tags'),
         ];
     }
-        private function getFileInfoData(Request $request)
+    private function getFileInfoData(Request $request)
     {
         return [
             'name' => $request->input('fileInfo.name'),
@@ -85,26 +89,31 @@ class GroupPostController extends Controller
         ];
     }
 
-    public function getGroupPosts(Request $request,$groupId){
+    public function getGroupPosts(Request $request, $groupId)
+    {
         $group = Group::findOrFail($groupId);
-        $page = $request->query('page',1);
+        $page = $request->query('page', 1);
         $per_page = $request->query('per_page', 10);
         $posts = GroupPost::where('group_id', $group->id)
-        ->with(['user','file'])
-        ->withCount('likedUsers')
-        ->withExists([
-            'likedUsers as liked' => function ($q) use ($request) {
-                $q->where('user_id', $request->user()->id);
-            }
-        ])
-        ->latest()
-        ->paginate($per_page, ['*'], 'page', $page);
+            ->with(['user', 'file'])
+            ->withCount('likedUsers')
+            ->withExists([
+                'likedUsers as liked' => function ($q) use ($request) {
+                    $q->where('user_id', $request->user()->id);
+                },
+                'postFollowers as followed' => function ($q) use ($request) {
+                    $q->where('follower_id', $request->user()->id);
+                },
+            ])
+            ->latest()
+            ->paginate($per_page, ['*'], 'page', $page);
         return response()->json([
             'posts' => $posts,
         ]);
     }
 
-    public function likeGroupPost($postId,Request $request){
+    public function likeGroupPost($postId, Request $request)
+    {
         $post = GroupPost::findOrFail($postId);
         $liked = $post->toggleGroupPostLike($request->user()->id);
         return response()->json([
@@ -115,8 +124,7 @@ class GroupPostController extends Controller
     }
     public function getDetailPostById(Request $request, $id)
     {
-        $post = GroupPost::where('id', $id)
-            ->with(['user', 'file'])
+        $post = GroupPost::with(['user', 'file'])
             ->withCount('likedUsers', 'comments')
             ->withExists([
                 'likedUsers as liked' => function ($q) use ($request) {
@@ -126,18 +134,16 @@ class GroupPostController extends Controller
                     $q->where('follower_id', $request->user()->id);
                 },
             ])
-            ->first();
-        if (!$post) {
-            return response()->json(['message' => 'Post not found.'], 404);
-        }
+            ->findOrFail($id);
         return response()->json([
             'message' => 'Detail Post retrieved successfully.',
             'post' => $post,
         ]);
     }
 
-    public function getGroupPostDetailById($postId,Request $request){
-          $post = GroupPost::where('id', $postId)
+    public function getGroupPostDetailById($postId, Request $request)
+    {
+        $post = GroupPost::where('id', $postId)
             ->with(['user', 'file'])
             ->withCount('likedUsers')
             ->withExists([
@@ -157,7 +163,7 @@ class GroupPostController extends Controller
             'post' => $post,
         ]);
     }
-    public function createGroupPostComment(Request $request,$postId)
+    public function createGroupPostComment(Request $request, $postId)
     {
         $request->validate([
             'comment' => 'required|string|max:2500',
@@ -175,16 +181,21 @@ class GroupPostController extends Controller
         ]);
     }
 
-    public function getGroupPostComments($postId,Request $request){
+    public function getGroupPostComments($postId, Request $request)
+    {
         $post = GroupPost::findOrFail($postId);
-        $page = $request->query('page',1);
+        $page = $request->query('page', 1);
         $per_page = $request->query('per_page', 10);
-        $comments = $post->comments()->with('user')->paginate($per_page, ['*'], 'page', $page);
+        $comments = $post
+            ->comments()
+            ->with('user')
+            ->paginate($per_page, ['*'], 'page', $page);
         return response()->json([
             'comments' => $comments,
         ]);
     }
-    public function updateGroupPostComment(Request $request,$postId){
+    public function updateGroupPostComment(Request $request, $postId)
+    {
         $request->validate([
             'comment' => 'required|string|max:2500',
         ]);
@@ -197,7 +208,7 @@ class GroupPostController extends Controller
             return response()->json(['message' => "You don't have permission to update this comment."], 403);
         }
         $comment->update([
-            "comment"=> $request->comment,
+            'comment' => $request->comment,
         ]);
         $comment->load(['user']);
         return response()->json([
@@ -205,7 +216,8 @@ class GroupPostController extends Controller
             'comment' => $comment,
         ]);
     }
-    public function deleteGroupPostComment(Request $request,$postId){
+    public function deleteGroupPostComment(Request $request, $postId)
+    {
         $user = $request->user();
         $comment = GroupPostComment::find($postId);
         if (!$comment) {
@@ -217,7 +229,89 @@ class GroupPostController extends Controller
         $comment->delete();
         return response()->json([
             'message' => 'Comment deleted successfully.',
-            'id' => $comment->id
+            'id' => $comment->id,
         ]);
+    }
+    public function deleteGroupPost(Request $request, $postId)
+    {
+        $user = $request->user();
+        $post = GroupPost::findOrFail($postId);
+
+        if (!$post) {
+            return response()->json(['message' => 'Post not found.'], 404);
+        }
+        if ($user->id != $post->user_id) {
+            return response()->json(['message' => "You don't have permission to delete this post."], 403);
+        }
+        $post->delete();
+
+        if($post->file()->exists() && Storage::disk('public')->exists($post->file['path'])){
+            Storage::disk('public')->delete($post->file['path']);
+            $post->file()->delete();
+        }
+        if($post->image && Storage::disk('public')->exists($post->image)){
+            Storage::disk("public")->delete($post->image);
+        }
+        return response()->json([
+            'message' => 'Post deleted successfully.',
+            'id' => $post->id,
+        ]);
+    }
+    public function updateGroupPost(Request $request, $id)
+    {
+        $this->validateGroupPost($request);
+        $post = GroupPost::findOrFail($id);
+        $groupPostData = $this->getGroupPostData($request);
+        $groupFileData = $this->getFileInfoData($request);
+        logger($groupPostData);
+        logger($groupFileData);
+        /*  check if the image is provided and then I check if the user just want to delete image */
+        if ($request->hasFile('image')) {
+            if ($post->image && Storage::disk('public')->exists($post->image)) {
+                Storage::disk('public')->delete($post->image);
+            }
+            $image = $request->file('image');
+            $groupPostData['image'] = $image->store('images', 'public');
+        } elseif ($request->isDeleteImage) {
+            if ($post->image && Storage::disk('public')->exists($post->image)) {
+                Storage::disk('public')->delete($post->image);
+            }
+            $groupPostData['image'] = null;
+        }
+
+        if ($request->hasFile('file')) {
+            // delete old file file if exists
+            if ($post->file && Storage::disk('public')->exists($post->file->path)) {
+                Storage::disk('public')->delete($post->file->path);
+            }
+
+            $uploaded = $request->file('file');
+            $groupFileData['path'] = $uploaded->store('files', 'public');
+
+            // create or update the GroupFile and attach to post
+            $fileModel = GroupFile::updateOrCreate(['id' => $post->file_id], $groupFileData);
+
+            $post->file_id = $fileModel->id;
+        }else if ($request->isDeleteFile) {
+            if ($post->file && Storage::disk('public')->exists($post->file->path)) {
+                Storage::disk('public')->delete($post->file->path);
+            }
+            if ($post->file) {
+                $post->file()->delete();
+            }
+            $post->file_id = null;
+        }
+
+        $post->update($groupPostData);
+        $post->save();
+        /*         if($request->hasFile('file')) {
+            $post->update([
+                'file' => $request->file('file')->store('public'),
+            ]);
+        } */
+return response()->json([
+    'message' => 'Post created successfully.',
+    'post' => $post->load(['user','file']),
+], 201);
     }
 }

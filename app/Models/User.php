@@ -10,6 +10,7 @@ use DateTimeInterface;
 use App\Models\Question;
 use App\Models\GroupPost;
 use App\Models\JobProposal;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use App\Models\adminProfile;
 use Laravel\Sanctum\HasApiTokens;
@@ -23,7 +24,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasFactory, Notifiable, HasApiTokens, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -96,9 +97,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Question::class, 'user_id', 'id');
     }
-    public function answers(): HasMany
+    public function questionMessages(): HasMany
     {
-        return $this->hasMany(Answer::class, 'user_id', 'id');
+        return $this->hasMany(QuestionMessage::class, 'user_id', 'id');
     }
     public function jobProposals(): HasMany
     {

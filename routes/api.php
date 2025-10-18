@@ -168,14 +168,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}/post', [GroupPostController::class, 'createGroupPost']);
 
         Route::prefix('posts')->group(function () {
-        Route::post('/{postId}/comments', [GroupPostController::class, 'createGroupPostComment']);
-        Route::get('/{postId}/comments', [GroupPostController::class, 'getGroupPostComments']);
-        Route::delete('/{postId}/comments', [GroupPostController::class, 'deleteGroupPostComment']);
-        Route::match(['put','patch'],'/{postId}/comments', [GroupPostController::class, 'updateGroupPostComment']);
+            Route::post('/{postId}/comments', [GroupPostController::class, 'createGroupPostComment']);
+            Route::get('/{postId}/comments', [GroupPostController::class, 'getGroupPostComments']);
+            Route::delete('/{postId}/comments', [GroupPostController::class, 'deleteGroupPostComment']);
+            Route::match(['put','patch'],'/{postId}/comments', [GroupPostController::class, 'updateGroupPostComment']);
 
-        Route::get('/{groupId}', [GroupPostController::class, 'getGroupPosts']);
-        Route::get('/{postId}/detail', [GroupPostController::class, 'getGroupPostDetailById']);
-
+            Route::get('/{groupId}', [GroupPostController::class, 'getGroupPosts']);
+            Route::get('/{postId}/detail', [GroupPostController::class, 'getGroupPostDetailById']);
+            Route::post('/{id}/edit',[GroupPostController::class,'updateGroupPost']);
+            Route::delete('/{id}',[GroupPostController::class,'deleteGroupPost']);
         });
     });
 
@@ -184,8 +185,9 @@ Route::middleware('auth:sanctum')->group(function () {
     | Users actions
     |--------------------------------------------------------------------------
     */
-    Route::prefix('users')->group(function () {
+    Route::prefix('user')->group(function () {
         Route::get('/{id}/follow', [UserController::class, 'followUser']);
+        Route::post('/delete',     [UserController::class, 'deleteUser']);
     });
 
     /*

@@ -28,7 +28,7 @@ class AdminController extends Controller
     }
     public function createAdmin(Request $request)
     {
-        $this->validateAdmin($request);
+        $this->validateAdmin($request,false);
 
         $adminData = $this->getAdminData($request);
         $adminProfileData = $this->getAdminProfileData($request);
@@ -52,14 +52,14 @@ class AdminController extends Controller
             201,
         );
     }
-    private function validateAdmin(Request $request, $updating = false, $id)
+    private function validateAdmin(Request $request, $updating = false, $id = -1)
     {
         return $request->validate(
             [
                 'name' => 'required|string|max:255',
                 'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($id)],
                 'password' => ['string', 'min:8', 'max:40', ($updating ? 'nullable' : 'required')],
-                'officeImage' => 'nullable|max:2048|image|mimes:png,jpg,jpeg,webp',
+                'officeImage' => 'required|max:2048|image|mimes:png,jpg,jpeg,webp',
                 'phone' => 'nullable|string|max:20',
                 'role' => 'nullable|string|max:255',
                 'admin_specialty' => 'nullable|string|max:255',
@@ -111,8 +111,8 @@ class AdminController extends Controller
         if ($request->hasFile('officeImage')) {
             $image = $request->file('officeImage');
             $path = $image->store('profile', 'public');
-            if (Storage::disk('public')->exists( $admin->adminProfile->office_image)) {
-                Storage::disk('public')->delete($admin->adminProfile->office_image);
+            if (Storage::disk('public')->exists( $admin->adminProfile["office_image"])) {
+                Storage::disk('public')->delete($admin->adminProfile['office_image']);
             }
             $adminProfileData['office_image'] = $path;
         }

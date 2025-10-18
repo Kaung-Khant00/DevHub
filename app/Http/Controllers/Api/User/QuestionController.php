@@ -51,7 +51,7 @@ class QuestionController extends Controller
             'tags' => $request->input('tags')
         ];
     }
-    public function getQuestions(Request $request){
+public function getQuestions(Request $request){
         $searchQuery = $request->query('searchQuery');
         $page = $request->query('page',1);
         $per_page = $request->query('perPage',4);
@@ -74,29 +74,20 @@ class QuestionController extends Controller
             'questions' => $questions
         ]);
     }
-    public function getQuestionDetailById(Request $request, $id){
-        /*  fetching question detail */
-        $question = Question::when(!Question::where('id', $id)->value('is_anonymous'),function($query){
-            return $query->with('user');
-        })->findOrFail($id);
-        $question->is_owner = $question->isOwner($request->user()->id);
-        return response()->json([
-            'question' => $question,
-        ]);
-    }
     public function commentQuestion(Request $request,$id){
         $request->validate([
             'body' => 'required|string|max:2500',
             'type' => 'required|in:comment,solution'
         ]);
         $question = Question::findOrFail($id);
-        if($request->type == 'solution')
-            {$message = $question->questionMessages()->create([
+        $message = $question->questionMessages()->create([
             'question_id' => $id,
             'user_id' => $request->user()->id,
             'body' => $request->body,
             'type' => $request->type
         ]);
+        if($request->type == 'solution')
+            {
             Notification::create([
                 'user_id' => $question->user_id,
                 'type' => 'SOLUTION',
@@ -252,21 +243,31 @@ class QuestionController extends Controller
         if(!empty($question->image_path) && Storage::disk('public')->exists($question->image_path)){
             Storage::disk('public')->delete($question->image_path);
         }
+         DB::beginTransaction();
+    try {
             DB::transaction(function () use ($question) {
-                DB::table('question_messages')->where('question_id', $question->id)->chunkById(200, function ($messages) {
-                    $ids = $messages->pluck('id')->all();
+                DB::table('question_messages')
+                ->where('question_id', $question->id)
+                ->select('id')
+                ->orderBy('id')
+                ->chunkById(200, function ($messages) {
+                    $ids = collect($messages)->pluck('id')->all();
                     if (!empty($ids)) {
                         DB::table('question_message_likes')->whereIn('question_message_id', $ids)->delete();
                     }
                 });
                 DB::table('question_messages')->where('question_id', 10)->delete();
                 DB::table('question_likes')->where('question_id', 10)->delete();
-                DB::table('questions')->where('id', 10)->delete();
+                $question->delete();
             });
-        return response()->json([
-            'message' => 'Question deleted successfully',
-            'data' => $question
-        ]);
+        } catch (\Exception $e) {
+        DB::rollBack();
+            return response()->json([
+                'message' => 'Question deleted successfully',
+                'data' => $question,
+                'error' => $e
+            ],500);
+    }
     }
     public function toggleSolvedQuestion(Request $request,$id){
         $question = Question::where('user_id',$request->user()->id)->findOrFail($id);

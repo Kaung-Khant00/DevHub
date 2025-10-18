@@ -58,7 +58,7 @@ class ProfileController extends Controller
         return $request->validate([
             /*  for user table */
             'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|numeric|max:255',
             'bio' => 'nullable|string|max:1000',
             'main_career' => 'nullable|string|max:255',
             /*  for developer table :) */

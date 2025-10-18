@@ -33,10 +33,10 @@ class GroupController extends Controller
             'name' => 'required|max:40|string|unique:groups,name',
             'description' => 'nullable|max:255|string',
             'image' => 'required|image|mimes:jpg,jpeg,webp,png|max:2048',
-            'tags' => 'nullable|array|max:3',
+            'tags' => 'nullable|array|max:4',
             'tags.*' => 'nullable|string|max:25',
         ],[
-            'tags.max' => 'You can only add up to 3 tags',
+            'tags.max' => 'You can only add up to 4 tags',
             'tags.*.max' => 'Each tag can have a maximum of 40 characters',
         ]);
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use id;
 use App\Models\File;
 use App\Models\Post;
+use App\Models\PostLike;
 use App\Models\PostComment;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -24,7 +25,7 @@ class PostController extends Controller
         $perPage = $request->query('perPage');
         $currentPage = $request->query('currentPage');
         $posts = Post::public()->with(['user', 'file'])
-            ->withCount('likedUsers')
+            ->withCount(['likedUsers', 'comments'])
             ->withExists([
                 'likedUsers as liked' => function ($q) use ($request) {
                     $q->where('user_id', $request->user()->id);
@@ -90,7 +91,7 @@ class PostController extends Controller
         $request->validate(
             [
                 'title' => 'nullable|string|max:255',
-                'content' => 'required|string|max:10000',
+                'content' => 'required|string|max:8000',
                 'image' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:5120',
                 'file' => 'nullable|file|max:10240',
                 'code' => 'nullable|string|max:5000',
@@ -229,7 +230,7 @@ class PostController extends Controller
         $request->validate(
             [
                 'title' => 'nullable|string|max:255',
-                'content' => [Rule::requiredIf($isUpdating),'string','max:10000'],
+                'content' => [Rule::requiredIf($isUpdating),'string','max:8000'],
                 'image' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:5120',
                 'file' => 'nullable|file|mimes:html,css,scss,sass,js,ts,jsx,tsx,vue,php,py,java,c,cpp,h,cs,go,rb,sh,json,xml,yml,yaml,sql,csv,env,md,pdf,doc,docx,xls,xlsx,ppt,pptx,zip,rar,7z,tar,gz|max:10240',
                 'code' => 'nullable|string',
@@ -258,7 +259,14 @@ class PostController extends Controller
         }
         $this->deleteImage($post);
         $this->deleteFile($post);
-        $post->delete();
+        $post->reports()->delete();
+        $post->comments()->delete();
+        PostLike::where('post_id', $post->id)->delete();
+        $post->forceDelete();
+        if($post->file_id){
+            File::where('id',$post->file['id'])->delete();
+        }
+
         return response()->json(['id' => $post->id, 'message' => 'Post deleted successfully.']);
     }
 
@@ -270,8 +278,8 @@ class PostController extends Controller
     }
     private function deleteFile($post)
     {
-        if (!empty($post->file) && is_string($post->file) && Storage::disk('public')->exists($post->file)) {
-            Storage::disk('public')->delete($post->file);
+        if (!empty($post->file) && Storage::disk('public')->exists($post->file['path'])) {
+            Storage::disk('public')->delete($post->file['path']);
         }
     }
 
@@ -339,7 +347,7 @@ class PostController extends Controller
             ->when($sortBy, function ($query, $sortBy) {
                 $sort = explode(',', $sortBy);
                 $query->orderBy($sort[0], $sort[1]);
-            })
+            })->latest()
             ->paginate($perPage, ['*'], 'page', $currentPage);
         return response()->json([
             'message' => 'Comments fetched successfully.',

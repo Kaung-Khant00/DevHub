@@ -19,7 +19,12 @@ class AdminGroupCreationRequestController extends Controller
  public function getAllGroupRequests(Request $request){
         $per_page = $request->query('per_page', 10);
         $page = $request->query('page',1);
-        $groupCreationRequests = GroupCreationRequest::with('user')->latest()->paginate($per_page, ['*'],'page', $page);
+        $searchQuery = $request->query('searchQuery');
+        logger($searchQuery);
+        $groupCreationRequests = GroupCreationRequest::with('user')
+        ->when($searchQuery, function ($query) use ($searchQuery) {
+            return $query->where('name', 'LIKE', '%' . $searchQuery . '%');})
+            ->latest()->paginate($per_page, ['*'],'page', $page);
         return response()->json([
             'group_creation_requests' => $groupCreationRequests,
             'message' => 'ALL Group Creation Requests Fetched Successfully'
@@ -35,7 +40,15 @@ class AdminGroupCreationRequestController extends Controller
         $per_page = $request->query('per_page', 10);
         $page = $request->query('page',1);
         $status = $request->query('status','pending');
-        $groupCreationRequests = GroupCreationRequest::with('user')->where('status', $status)->paginate($per_page, ['*'],'page', $page);
+        if($status == "all"){
+            $status = null;
+        }
+        $searchQuery = $request->query('searchQuery');
+        $groupCreationRequests = GroupCreationRequest::with('user')
+        ->where('status', $status)
+        ->when($searchQuery, function ($query) use ($searchQuery) {
+            return $query->where('name', 'LIKE', '%' . $searchQuery . '%');})
+            ->paginate($per_page, ['*'],'page', $page);
         return response()->json([
             'group_creation_requests' => $groupCreationRequests,
             'message' => 'Group Creation Requests Fetched Successfully'

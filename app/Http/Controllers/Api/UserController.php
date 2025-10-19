@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Models\File;
 use App\Models\User;
 use App\Models\Report;
+use App\Models\PostLike;
 use App\Models\PostComment;
 use Illuminate\Http\Request;
 use App\Models\DeveloperProfile;
@@ -46,27 +47,29 @@ class UserController extends Controller
 
         /*  delete the post feed field (file attachment , images, comments ) */
 
-        $user->posts()->with('file')->chunkById(100, function ($posts) use ($user) {
+        $user->posts()->withTrashed()->with('file')->chunkById(100, function ($posts) use ($user) {
              /*  1. delete file attachments */
              foreach($posts as $post){
-
-                /*  2. delete posts with images */
-                if(isset($post->image)){
+                if($post->user_id != $user->id){
+                    continue;
+                }
+                /*  2. delete posts with Image and File */
+                if(!empty($post->image)){
                     if( Storage::disk('public')->exists($post->image)){
                         Storage::disk('public')->delete($post->image);
                     }
                 }
-                /*  3. delete comments */
+
+                /*  3. delete comments and likes*/
                 PostComment::where('post_id', $post->id)->delete();
+                PostLike::where('post_id', $post->id)->delete();
                 /*  4. delete reports */
                 Report::where('reportable_id', $post->id)->delete();
-                $post->withTrashed()->forceDelete();
-
-               if($post->file()->exists()){
-                    if( Storage::disk('public')->exists($post->file->path)){
-                        Storage::disk('public')->delete($post->file->path);
-                    }
-                    $file = File::find($post->file->id);
+                $fileData = $post->file;
+                $post->forceDelete();
+                if (!empty($fileData) && Storage::disk('public')->exists($fileData['path'])) {
+                    Storage::disk('public')->delete($fileData['path']);
+                    $file = File::find($fileData['id']);
                     $file->delete();
                 }
              }
@@ -78,6 +81,13 @@ class UserController extends Controller
         $user->notifications()->delete();
         /*  delete followed user and following user relationship field */
         DeveloperConnection::where('following_id', $user->id)->orWhere('follower_id', $user->id)->delete();
+
+        /*  delete profile image */
+         if($user->profile_url && Storage::disk('public')->exists($user->profile_url)){
+            Storage::disk('public')->delete($user->profile_url);
+         }
+
+        Report::where('reporter_id', $request->user()->id)->delete();
 
         $user->update([
             'name' => 'Deleted User',
@@ -91,7 +101,6 @@ class UserController extends Controller
             'phone' => null,
             'bio' => null
         ]);
-        $user->save();
         $user->delete();
         DB::commit();
         return response()->json([

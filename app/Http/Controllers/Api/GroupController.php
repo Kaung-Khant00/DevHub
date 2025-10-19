@@ -32,12 +32,13 @@ class GroupController extends Controller
         return $request->validate([
             'name' => 'required|max:40|string|unique:groups,name',
             'description' => 'nullable|max:255|string',
-            'image' => 'required|image|mimes:jpg,jpeg,webp,png|max:2048',
+            'image' => 'required|image|mimes:jpg,jpeg,webp,png|max:3072',
             'tags' => 'nullable|array|max:4',
             'tags.*' => 'nullable|string|max:25',
         ],[
             'tags.max' => 'You can only add up to 4 tags',
             'tags.*.max' => 'Each tag can have a maximum of 40 characters',
+            'image.max'=> "The image can not be greater than 3 MB.",
         ]);
     }
     public function getGroupCreationRequestData(Request $request)

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use id;
 use App\Models\File;
 use App\Models\Post;
 use App\Models\PostLike;
@@ -128,11 +127,7 @@ class PostController extends Controller
   */
     public function getPostById($id,Request $request)
     {
-        $post = Post::with('user')->withExists([
-            'postFollowers as followed' => function ($q) use ($request) {
-                $q->where('follower_id', $request->user()->id);
-            }
-        ])->find($id);
+        $post = Post::with(['user','file'])->findOrFail($id);
         if($post->user_id !== $request->user()->id){
             $post = $post->public();
         }
@@ -152,8 +147,8 @@ class PostController extends Controller
   */
     public function getDetailPostById(Request $request, $id)
     {
-        $post = Post::public()->where('id', $id)
-            ->with(['user', 'file'])
+            $post = Post::public()->where('id', $id)
+            ->with(['file','user'])
             ->withCount('likedUsers', 'comments')
             ->withExists([
                 'likedUsers as liked' => function ($q) use ($request) {
@@ -167,6 +162,10 @@ class PostController extends Controller
         if (!$post) {
             return response()->json(['message' => 'Post not found.'], 404);
         }
+        logger("data");
+        logger(File::where('id', $post->file_id)->first());
+        $post['file'] = File::where('id', $post->file_id)->first();
+        logger($post->file);
         return response()->json([
             'message' => 'Detail Post retrieved successfully.',
             'post' => $post,
@@ -187,39 +186,40 @@ class PostController extends Controller
         }
         $this->validateUpdatingPost($request,true);
         $postData = $this->getPostData($request);
-        /*
-|-----------------------------------
-|  File And Image deleting when the user wants to delete not update
-*/
-        if ($request->boolean('isDeleteImage')) {
-            logger('delete image');
-            $this->deleteImage($post);
+        $fileInfo = $this->getFileInfoData($request);
 
-            $postData['image'] = null;
-        }
-        if ($request->boolean('isDeleteFile')) {
-            $this->deleteFile($post);
-
-            $postData['file'] = null;
-        }
-        /*
-|--------------------------------
-|  UPDATE File And Image and delete the previous ones
-*/
+/* first I check the image is provided and then I check if the user just want to delete image */
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $this->deleteImage($post);
             $imagePath = $image->store('images', 'public');
             $postData['image'] = $imagePath;
+        }else         if ($request->boolean('isDeleteImage')) {
+            logger('delete image');
+            $this->deleteImage($post);
+
+            $postData['image'] = null;
         }
+
+/* first I check the file is provided and then I check if the user just want to delete file */
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             $this->deleteFile($post);
             $filePath = $file->store('files', 'public');
-            $postData['file'] = $filePath;
+            $fileInfo['path'] = $filePath;
+            $file = $post->file()->updateOrCreate($fileInfo);
+            $postData['file_id'] = $file->id;
+        }else if ($request->boolean('isDeleteFile')) {
+            $this->deleteFile($post);
+            $fileId = $post->file_id;
+            $post->update(['file_id' => null]);
+            File::where('id', $fileId)->delete();
+        }
+        if($post->file_id !== null){
+            $file = $post->file()->update($fileInfo);
         }
         $post->update($postData);
-        $post->load('user');
+        $post->load(['user','file']);
         return response()->json([
             'message' => 'Post updated successfully.',
             'post' => $post,
@@ -232,7 +232,7 @@ class PostController extends Controller
                 'title' => 'nullable|string|max:255',
                 'content' => [Rule::requiredIf($isUpdating),'string','max:8000'],
                 'image' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:5120',
-                'file' => 'nullable|file|mimes:html,css,scss,sass,js,ts,jsx,tsx,vue,php,py,java,c,cpp,h,cs,go,rb,sh,json,xml,yml,yaml,sql,csv,env,md,pdf,doc,docx,xls,xlsx,ppt,pptx,zip,rar,7z,tar,gz|max:10240',
+                'file' => 'nullable|file|max:10240',
                 'code' => 'nullable|string',
                 'code_lang' => 'nullable|string',
             ],
@@ -420,4 +420,5 @@ class PostController extends Controller
         $path = Storage::disk('public')->path($file);
         return response()->download($path);
     }
+
 }

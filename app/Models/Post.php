@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Models\File;
 use App\Models\User;
 use App\Models\Report;
-use App\Models\PostLike;
 use App\Models\PostComment;
 use App\Models\DeveloperConnection;
 use App\Models\Scopes\VisibilityScope;
@@ -51,9 +50,9 @@ class Post extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function file(): HasOne
+    public function file(): BelongsTo
     {
-        return $this->hasOne(File::class, 'id', 'file_id');
+        return $this->belongsTo(File::class, 'file_id', 'id');
     }
 
     public function likedUsers(): BelongsToMany

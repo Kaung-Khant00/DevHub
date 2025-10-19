@@ -208,11 +208,12 @@ Route::middleware('auth:sanctum')->group(function () {
     */
     Route::prefix('notifications')->group(function () {
         Route::get('/',                   [NotificationController::class, 'getNotifications']);
-        Route::get('/{id}',               [NotificationController::class, 'getNotificationById']);
+        Route::get('/{id}',               [NotificationController::class, 'getNotificationById'])->whereNumber('id');
         Route::match(['put','patch'], '/{id}/read',   [NotificationController::class, 'updateNotificationReadStatus'])->whereNumber('id');
         Route::match(['put','patch'], '/all/read',    [NotificationController::class, 'updateNotificationAllReadStatus']);
         Route::delete('/{id}',           [NotificationController::class, 'deleteNotification'])->whereNumber('id');
         Route::delete('/all/read',       [NotificationController::class, 'deleteAllReadNotification']);
+        Route::get('/count',             [NotificationController::class, 'getNewNotificationCount']);
     });
 
     /*

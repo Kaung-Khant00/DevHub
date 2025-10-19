@@ -28,7 +28,7 @@ class AdminController extends Controller
     }
     public function createAdmin(Request $request)
     {
-        $this->validateAdmin($request,false);
+        $this->validateAdmin($request,true);
 
         $adminData = $this->getAdminData($request);
         $adminProfileData = $this->getAdminProfileData($request);
@@ -52,14 +52,14 @@ class AdminController extends Controller
             201,
         );
     }
-    private function validateAdmin(Request $request, $updating = false, $id = -1)
+    private function validateAdmin(Request $request, $creating = true, $id = -1)
     {
         return $request->validate(
             [
                 'name' => 'required|string|max:255',
                 'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($id)],
-                'password' => ['string', 'min:8', 'max:40', ($updating ? 'nullable' : 'required')],
-                'officeImage' => 'required|max:2048|image|mimes:png,jpg,jpeg,webp',
+                'password' => $creating ? ['required', 'string', 'min:8', 'max:40'] : ['nullable', 'string', 'min:8', 'max:40'],
+                'officeImage' => ['max:2048','image','mimes:png,jpg,jpeg,webp',Rule::requiredIf($creating)],
                 'phone' => 'nullable|string|max:20',
                 'role' => 'nullable|string|max:255',
                 'admin_specialty' => 'nullable|string|max:255',
@@ -95,14 +95,14 @@ class AdminController extends Controller
     }
     public function getAdminById($id)
     {
-        $admin = User::where('role', 'admin')->with('adminProfile')->findOrFail($id);
+        $admin = User::with('adminProfile')->where('role', 'admin')->with('adminProfile')->findOrFail($id);
         return response()->json([
             'admin' => $admin,
         ]);
     }
     public function updateAdminById(Request $request, $id)
     {
-        $this->validateAdmin($request, true, $id);
+        $this->validateAdmin($request, false, $id);
 
         $admin = User::where('role', 'ADMIN')->with('adminProfile')->findOrFail($id);
         $adminData = $this->getAdminData($request);
@@ -122,7 +122,7 @@ class AdminController extends Controller
             unset($adminData['password']);
         }
         DB::transaction(function () use ($admin, $adminData, $adminProfileData) {
-            $admin->update($adminData);
+            $admin->update(attributes: $adminData);
             $admin->adminProfile()->update($adminProfileData);
         });
         return response()->json(

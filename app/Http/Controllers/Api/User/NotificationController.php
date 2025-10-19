@@ -9,6 +9,13 @@ use App\Http\Controllers\Controller;
 
 class NotificationController extends Controller
 {
+    public function getNewNotificationCount(Request $request){
+        $count = $request->user()->notifications()->where('is_read', false)->count();
+        return response()->json([
+            'message' => 'Notifications count retrieved successfully.',
+            'count' => $count,
+        ]);
+    }
     public function getNotifications(Request $request)
     {
         $user = $request->user();
@@ -27,7 +34,7 @@ class NotificationController extends Controller
     }
     public function getNotificationById(Request $request,$id){
         $user = $request->user();
-        $notification = $user->notifications()->where('id', $id)->first();
+        $notification = $user->notifications()->findOrFail($id);
         if($notification->user_id === $request->user()->id){
             $post = $this->postFromNotification($notification);
             $this->questionMessageFromNotification($notification);

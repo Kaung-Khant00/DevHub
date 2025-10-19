@@ -4,10 +4,11 @@ namespace App\Http\Controllers\Api\User;
 
 use App\Models\File;
 use App\Models\Group;
-use App\Models\GroupFile;
 use App\Models\GroupPost;
 use Illuminate\Http\Request;
+use App\Models\GroupPostLike;
 use App\Models\GroupPostComment;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 
@@ -43,7 +44,7 @@ class GroupPostController extends Controller
         return response()->json(
             [
                 'message' => 'Post created successfully.',
-                'post' => $post,
+                'post' => $post->load(['file','user']),
             ],
             201,
         );
@@ -58,13 +59,14 @@ class GroupPostController extends Controller
                 'image' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:5120',
                 'file' => 'nullable|file|max:10240',
                 'code' => 'nullable|string',
-                'codeLang' => 'nullable|string',
+                'codeLang' => 'nullable|string|max:255',
                 'tags' => 'nullable|array|max:3',
                 'tags.*' => 'nullable|string|max:25',
             ],
             [
                 'image.max' => 'The image can not be greater than 5 MB.',
                 'file.max' => 'The file can not be greater than 10 MB.',
+                'codeLang.max' => 'The code language can not be greater than 255 characters.',
             ],
         );
     }
@@ -243,75 +245,83 @@ class GroupPostController extends Controller
         if ($user->id != $post->user_id) {
             return response()->json(['message' => "You don't have permission to delete this post."], 403);
         }
-        $post->delete();
 
-        if($post->file()->exists() && Storage::disk('public')->exists($post->file['path'])){
+        if (!empty($post->image) && is_string($post->image) && Storage::disk('public')->exists($post->image)) {
+            Storage::disk('public')->delete($post->image);
+        }
+        if (!empty($post->file) && Storage::disk('public')->exists($post->file['path'])) {
             Storage::disk('public')->delete($post->file['path']);
-            $post->file()->delete();
         }
-        if($post->image && Storage::disk('public')->exists($post->image)){
-            Storage::disk("public")->delete($post->image);
+        DB::transaction(function () use ($post) {
+            GroupPostComment::where('post_id', $post->id)->delete();
+            GroupPostLike::where('post_id', $post->id)->delete();
+            $post->delete();
+            if($post->file_id){
+            File::where('id',$post->file['id'])->delete();
         }
-        return response()->json([
+        });
+            return response()->json([
             'message' => 'Post deleted successfully.',
             'id' => $post->id,
         ]);
     }
+
     public function updateGroupPost(Request $request, $id)
     {
+
         $this->validateGroupPost($request);
-        $post = GroupPost::findOrFail($id);
+        $post = GroupPost::where('user_id', $request->user()->id)->findOrFail($id);
+
         $groupPostData = $this->getGroupPostData($request);
         $groupFileData = $this->getFileInfoData($request);
-        logger($groupPostData);
-        logger($groupFileData);
-        /*  check if the image is provided and then I check if the user just want to delete image */
+
+
         if ($request->hasFile('image')) {
-            if ($post->image && Storage::disk('public')->exists($post->image)) {
-                Storage::disk('public')->delete($post->image);
-            }
             $image = $request->file('image');
-            $groupPostData['image'] = $image->store('images', 'public');
-        } elseif ($request->isDeleteImage) {
-            if ($post->image && Storage::disk('public')->exists($post->image)) {
-                Storage::disk('public')->delete($post->image);
-            }
+            $this->deleteImage($post);
+            $imagePath = $image->store('images', 'public');
+            $groupPostData['image'] = $imagePath;
+        }else  if ($request->boolean('isDeleteImage')) {
+            logger('delete image');
+            $this->deleteImage($post);
+
             $groupPostData['image'] = null;
         }
 
         if ($request->hasFile('file')) {
-            // delete old file file if exists
-            if ($post->file && Storage::disk('public')->exists($post->file->path)) {
-                Storage::disk('public')->delete($post->file->path);
-            }
-
-            $uploaded = $request->file('file');
-            $groupFileData['path'] = $uploaded->store('files', 'public');
-
-            // create or update the GroupFile and attach to post
-            $fileModel = GroupFile::updateOrCreate(['id' => $post->file_id], $groupFileData);
-
-            $post->file_id = $fileModel->id;
-        }else if ($request->isDeleteFile) {
-            if ($post->file && Storage::disk('public')->exists($post->file->path)) {
-                Storage::disk('public')->delete($post->file->path);
-            }
-            if ($post->file) {
-                $post->file()->delete();
-            }
-            $post->file_id = null;
+            $file = $request->file('file');
+            $this->deleteFile($post);
+            $filePath = $file->store('files', 'public');
+            $groupFileData['path'] = $filePath;
+            $file = $post->file()->updateOrCreate($groupFileData);
+            $groupPostData['file_id'] = $file->id;
+        }else if ($request->boolean('isDeleteFile')) {
+            $this->deleteFile($post);
+            $fileId = $post->file_id;
+            $post->update(['file_id' => null]);
+            File::where('id', $fileId)->delete();
+        }
+        if($post->file_id !== null){
+            $file = $post->file()->update($groupFileData);
+        }
+        $post->update($groupPostData);
+        $post->load(['user','file']);
+        return response()->json([
+            'message' => 'Group Post updated successfully.',
+            'post' => $post,
+        ]);
         }
 
-        $post->update($groupPostData);
-        $post->save();
-        /*         if($request->hasFile('file')) {
-            $post->update([
-                'file' => $request->file('file')->store('public'),
-            ]);
-        } */
-return response()->json([
-    'message' => 'Post created successfully.',
-    'post' => $post->load(['user','file']),
-], 201);
+        private function deleteImage($post)
+    {
+        if (!empty($post->image) && is_string($post->image) && Storage::disk('public')->exists($post->image)) {
+            Storage::disk('public')->delete($post->image);
+        }
+    }
+    private function deleteFile($post)
+    {
+        if (!empty($post->file) && Storage::disk('public')->exists($post->file['path'])) {
+            Storage::disk('public')->delete($post->file['path']);
+        }
     }
 }

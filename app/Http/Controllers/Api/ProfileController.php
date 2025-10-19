@@ -47,6 +47,7 @@ class ProfileController extends Controller
     /* but I don't have that much time :(:(  but I will add it in the future */
     public function editProfile(Request $request)
     {
+        logger($request->all());
         $this->validateProfileData($request);
         $user = $request->user();
         $user->update($request->only(['name', 'phone', 'bio', 'main_career','gender']));
@@ -58,7 +59,7 @@ class ProfileController extends Controller
         return $request->validate([
             /*  for user table */
             'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|numeric|max:255',
+            'phone' => 'nullable|digits_between:5,20',
             'bio' => 'nullable|string|max:1000',
             'main_career' => 'nullable|string|max:255',
             /*  for developer table :) */

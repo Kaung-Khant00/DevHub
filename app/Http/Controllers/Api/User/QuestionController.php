@@ -51,6 +51,15 @@ class QuestionController extends Controller
             'tags' => $request->input('tags')
         ];
     }
+     public function getQuestionDetailById(Request $request, $id){
+        $question = Question::when(!Question::where('id', $id)->value('is_anonymous'),function($query){
+            return $query->with('user');
+        })->findOrFail($id);
+        $question->is_owner = $question->isOwner($request->user()->id);
+        return response()->json([
+            'question' => $question,
+        ]);
+    }
 public function getQuestions(Request $request){
         $searchQuery = $request->query('searchQuery');
         $page = $request->query('page',1);
@@ -67,8 +76,10 @@ public function getQuestions(Request $request){
             'likedUsers as is_liked' => function ($q) use ($request) {
                 $q->where('user_id', $request->user()->id);
         }])
-        ->when('sortBy',function ($query) use ($sortBy) { $sort = explode(',', $sortBy); $query->orderBy($sort[0], $sort[1]);})
-        ->withCount(['questionMessages','likedUsers'])->latest()
+        ->withCount(['questionMessages','likedUsers'])
+        ->when('sortBy',function ($query) use ($sortBy) {
+            $sort = explode(',', $sortBy);
+            return $query->orderBy($sort[0], $sort[1]);})
         ->paginate($per_page, ['*'], 'page', $page);
         return response()->json([
             'questions' => $questions
@@ -86,7 +97,7 @@ public function getQuestions(Request $request){
             'body' => $request->body,
             'type' => $request->type
         ]);
-        if($request->type == 'solution')
+        if($request->type == 'solution' && $question->user_id != $request->user()->id)
             {
             Notification::create([
                 'user_id' => $question->user_id,
@@ -245,21 +256,20 @@ public function getQuestions(Request $request){
         }
          DB::beginTransaction();
     try {
-            DB::transaction(function () use ($question) {
-                DB::table('question_messages')
-                ->where('question_id', $question->id)
+                QuestionMessage::where('question_id', $question->id)
                 ->select('id')
                 ->orderBy('id')
                 ->chunkById(200, function ($messages) {
                     $ids = collect($messages)->pluck('id')->all();
+                    logger($ids);
                     if (!empty($ids)) {
-                        DB::table('question_message_likes')->whereIn('question_message_id', $ids)->delete();
+                        QuestionMessageLike::whereIn('question_message_id', $ids)->delete();
                     }
                 });
-                DB::table('question_messages')->where('question_id', 10)->delete();
-                DB::table('question_likes')->where('question_id', 10)->delete();
+                QuestionMessage::where('question_id', $question->id)->delete();
+                QuestionLike::where('question_id', $question->id)->delete();
                 $question->delete();
-            });
+            DB::commit();
         } catch (\Exception $e) {
         DB::rollBack();
             return response()->json([
